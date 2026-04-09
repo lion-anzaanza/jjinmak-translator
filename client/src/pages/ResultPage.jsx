@@ -38,7 +38,11 @@ export default function ResultPage() {
   })();
 
   const stateData = location.state || shared;
-  const { name, phrase, playCount: initialPlayCount, skipRanking } = stateData || {};
+  const { name, phrase, playCount: initialPlayCount, skipRanking, totalPhrases, seenPhrases: prevSeen } = stateData || {};
+
+  // 본 문구 추적 (Set → Array로 navigation state에 전달)
+  const seenPhrases = [...new Set([...(prevSeen || []), phrase].filter(Boolean))];
+  const seenCount = seenPhrases.length;
 
   const localCount = useRef(initialPlayCount || 1);
   const [playCount, setPlayCount] = useState(initialPlayCount || 1);
@@ -92,13 +96,13 @@ export default function ResultPage() {
     if (skipRanking) {
       localCount.current += 1;
       navigate('/result', {
-        state: { ...data, playCount: localCount.current, skipRanking },
+        state: { ...data, playCount: localCount.current, skipRanking, seenPhrases },
         replace: true,
       });
     } else {
       localCount.current = data.playCount;
       navigate('/result', {
-        state: { ...data, skipRanking },
+        state: { ...data, skipRanking, seenPhrases },
         replace: true,
       });
     }
@@ -148,9 +152,14 @@ export default function ResultPage() {
         </p>
       </motion.div>
 
-      <p className="text-lg font-bold text-gray-300 mb-6">
+      <p className="text-lg font-bold text-gray-300 mb-2">
         현재 <span className="text-purple-400">{playCount}판</span> 째
       </p>
+      {totalPhrases && (
+        <p className="text-sm text-gray-500 mb-6">
+          전체 {totalPhrases}개 문장 중 {seenCount}개 발견!
+        </p>
+      )}
 
       <button
         onClick={handleShare}

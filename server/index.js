@@ -54,7 +54,7 @@ app.post('/api/translate', (req, res) => {
     }
   }
 
-  res.json({ name: trimmedName, phrase, playCount });
+  res.json({ name: trimmedName, phrase, playCount, totalPhrases: phrases.length });
 });
 
 // API: 랭킹 조회 (TOP 3)
