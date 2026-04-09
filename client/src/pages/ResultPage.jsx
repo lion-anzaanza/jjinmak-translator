@@ -16,6 +16,8 @@ function fromBase64(str) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
+const NEODGM = { fontFamily: 'NeoDungGeunMo, monospace' };
+
 export default function ResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -66,13 +68,13 @@ export default function ResultPage() {
     const interval = setInterval(() => {
       setDisplayedMessage(slotMessages[count % slotMessages.length]);
       count++;
-    }, 100);
+    }, 150);
 
     const timeout = setTimeout(() => {
       clearInterval(interval);
       setIsSlotting(false);
       setDisplayedMessage(phrase);
-    }, 2000);
+    }, 700);
 
     return () => {
       clearInterval(interval);
@@ -93,19 +95,11 @@ export default function ResultPage() {
     });
     const data = await res.json();
 
-    if (skipRanking) {
-      localCount.current += 1;
-      navigate('/result', {
-        state: { ...data, playCount: localCount.current, skipRanking, seenPhrases },
-        replace: true,
-      });
-    } else {
-      localCount.current = data.playCount;
-      navigate('/result', {
-        state: { ...data, skipRanking, seenPhrases },
-        replace: true,
-      });
-    }
+    localCount.current += 1;
+    navigate('/result', {
+      state: { ...data, playCount: localCount.current, skipRanking, seenPhrases },
+      replace: true,
+    });
     window.location.reload();
   };
 
@@ -135,62 +129,76 @@ export default function ResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6" style={{ fontFamily: "'Gaegu', cursive" }}>
-      <h2 className="text-3xl mb-8">
-        <span className="font-bold text-purple-400">'{name}'</span>의 속마음은…
-      </h2>
+    <div className="marble-bg min-h-screen flex items-center justify-center p-6">
+      {/* 중앙 카드 */}
+      <div className="bg-black rounded-[30px] w-full max-w-[1200px] h-[540px] mx-4 shadow-2xl relative z-10 flex flex-col items-center justify-center px-16 py-12">
+        {/* 상단 텍스트 */}
+        <div className="text-center mb-8">
+          <p className="text-white text-[22px] font-bold" style={NEODGM}>
+            '{name}'의 속마음은 ...
+          </p>
+        </div>
 
-      <motion.div
-        key={displayedMessage}
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="mb-8"
-      >
-        <p className="text-7xl font-bold text-center bg-gradient-to-r from-yellow-400 to-pink-500 bg-clip-text text-transparent">
-          "{displayedMessage}"
-        </p>
-      </motion.div>
+        {/* 메인 번역 텍스트 (슬롯머신 애니메이션 유지) */}
+        <div className="text-center mb-10 px-8">
+          <motion.p
+            key={displayedMessage}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="text-6xl font-black leading-snug"
+            style={{
+              background: 'linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            "{displayedMessage}"
+          </motion.p>
+        </div>
 
-      <p className="text-lg font-bold text-gray-300 mb-2">
-        현재 <span className="text-purple-400">{playCount}판</span> 째
-      </p>
-      {totalPhrases && (
-        <p className="text-sm text-gray-500 mb-6">
-          전체 {totalPhrases}개 문장 중 {seenCount}개 발견!
-        </p>
-      )}
+        {/* 배지/통계 */}
+        <div className="flex flex-col items-center gap-2 mb-10">
+          <div className="flex items-center justify-center">
+            <span className="text-white text-[18px]" style={NEODGM}>
+              현재 <span className="font-bold text-[26px] text-pink-500">{playCount}판</span> 째
+            </span>
+          </div>
+          {totalPhrases && (
+            <div className="text-gray-400 flex items-center justify-center">
+              <span className="text-[13px]" style={NEODGM}>
+                전체 {totalPhrases}개 문장 중 {seenCount}개 발견!
+              </span>
+            </div>
+          )}
+        </div>
 
-      <button
-        onClick={handleShare}
-        className="mb-8 px-8 py-3 bg-blue-500 rounded-full text-lg font-bold hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg"
-      >
-        공유하기
-      </button>
-
-      <div className="flex gap-4">
-        <button
-          onClick={handleRetry}
-          className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-lg font-bold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg"
-        >
-          다시 돌리기
-        </button>
-        <button
-          onClick={() => navigate('/')}
-          className="px-8 py-3 bg-gray-600 rounded-full text-lg font-bold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-lg"
-        >
-          돌아가기
-        </button>
+        {/* 버튼들 */}
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={handleShare}
+            className="text-white rounded-full font-bold transition-colors w-[140px] h-[48px] flex items-center justify-center text-[16px] hover:brightness-110"
+            style={{ ...NEODGM, backgroundColor: '#9CB5FF' }}
+          >
+            이거봐라
+          </button>
+          <button
+            onClick={handleRetry}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[180px] h-[48px] flex items-center justify-center text-[18px]"
+            style={{ ...NEODGM, fontWeight: 900 }}
+          >
+            찐막 ?
+          </button>
+          <button
+            onClick={() => navigate('/', { state: { resetSeen: true } })}
+            className="bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold transition-colors w-[140px] h-[48px] flex items-center justify-center text-[16px]"
+            style={NEODGM}
+          >
+            고마하자..
+          </button>
+        </div>
       </div>
-
-      <div className="fixed top-10 left-10 text-4xl opacity-50">✨</div>
-      <div className="fixed top-20 left-32 text-3xl opacity-30">✨</div>
-      <div className="fixed top-10 right-10 text-4xl opacity-50">✨</div>
-      <div className="fixed top-20 right-32 text-3xl opacity-30">✨</div>
-      <div className="fixed bottom-20 left-20 text-5xl opacity-40">💭</div>
-      <div className="fixed bottom-32 right-24 text-4xl opacity-40">😴</div>
-      <div className="fixed top-1/3 left-10 text-3xl opacity-30">📚</div>
-      <div className="fixed top-1/2 right-12 text-3xl opacity-30">😅</div>
     </div>
   );
 }

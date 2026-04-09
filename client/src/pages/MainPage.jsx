@@ -50,40 +50,41 @@ export default function MainPage() {
       body: JSON.stringify({ name: friendName.trim(), skipRanking: dontRecord }),
     });
     const data = await res.json();
-    navigate('/result', { state: { ...data, skipRanking: dontRecord } });
+    navigate('/result', { state: { ...data, playCount: 1, skipRanking: dontRecord } });
   };
 
   return (
     <div className="marble-bg min-h-screen flex items-center justify-center p-6" style={{ fontFamily: FONT }}>
       {/* 메인 카드 — Figma: 885×389, rounded-30, bg-black */}
-      <div className="bg-black rounded-[30px] flex flex-col md:flex-row w-full max-w-[885px] min-h-[389px] relative overflow-hidden">
+      <div className="bg-black rounded-[30px] flex flex-col md:flex-row w-full max-w-[1200px] h-[540px] relative overflow-hidden">
 
         {/* ===== 왼쪽: 입력 영역 ===== */}
         {/* Figma 좌표: 왼쪽 패딩 97px, 상단 패딩 ~40px */}
-        <div className="w-full md:w-[563px] shrink-0 pl-[97px] pr-[40px] py-[40px] flex flex-col justify-center">
+        <div className="flex-1 pl-[120px] pr-[50px] py-[50px] flex flex-col justify-center">
 
-          {/* 타이틀 — Figma: 큰 흰색 볼드 텍스트, 카드 상단 중앙 */}
+          {/* 타이틀 */}
           <h1
-            className="text-white text-[45px] leading-tight mb-[42px]"
+            className="text-white text-[56px] leading-tight mb-[50px]"
             style={{ fontFamily: "NeoDungGeunMo, monospace" }}
           >
             니,,, 공부할끼가?
           </h1>
 
-          {/* 이름 입력 — Figma: 233×48, bg rgba(255,255,255,0.23), border #bfd1ff, rounded 5 */}
+          {/* 이름 입력 */}
           <input
             type="text"
             value={friendName}
-            onChange={(e) => setFriendName(e.target.value)}
+            onChange={(e) => { if (e.target.value.length <= 5) setFriendName(e.target.value); }}
             onKeyDown={(e) => e.key === 'Enter' && handleTranslate()}
+            maxLength={5}
             placeholder="친구 이름이 뭐고?"
-            className="w-[233px] h-[48px] bg-[rgba(255,255,255,0.23)] border border-[#bfd1ff] rounded-[5px] px-[19px] text-white text-[20px] placeholder-[rgba(255,255,255,0.33)] focus:outline-none focus:border-[#9cb5ff]"
+            className="w-[320px] h-[56px] bg-[rgba(255,255,255,0.23)] border border-[#bfd1ff] rounded-[5px] px-[19px] text-white text-[22px] placeholder-[rgba(255,255,255,0.33)] focus:outline-none focus:border-[#9cb5ff]"
           />
 
-          {/* 체크박스 — Figma: dot 8×8 rgba(255,255,255,0.92), text 12px rgba(255,255,255,0.33) */}
-          <label className="flex items-center gap-[6px] cursor-pointer mt-[13px] mb-[48px]">
+          {/* 체크박스 */}
+          <label className="flex items-center gap-[8px] cursor-pointer mt-[14px] mb-[50px]">
             <span
-              className={`w-2 h-2 rounded-[2px] transition-colors ${dontRecord ? 'bg-[rgba(255,255,255,0.92)]' : 'bg-[rgba(255,255,255,0.3)]'}`}
+              className={`w-2.5 h-2.5 rounded-[2px] transition-colors ${dontRecord ? 'bg-[rgba(255,255,255,0.92)]' : 'bg-[rgba(255,255,255,0.3)]'}`}
             />
             <input
               type="checkbox"
@@ -91,47 +92,39 @@ export default function MainPage() {
               onChange={(e) => setDontRecord(e.target.checked)}
               className="hidden"
             />
-            <span className="text-[12px] text-[rgba(255,255,255,0.33)]">
+            <span className="text-[14px] text-[rgba(255,255,255,0.33)]">
               랭크에 기록 안 할란다
             </span>
           </label>
 
-          {/* CTA 버튼 — Figma: 383×48, bg #9cb5ff, rounded 100 */}
+          {/* CTA 버튼 */}
           <button
             onClick={handleTranslate}
-            className="w-[383px] max-w-full h-[48px] bg-[#9cb5ff] hover:bg-[#b0c5ff] rounded-[100px] text-white text-[20px] font-bold transition-all hover:scale-[1.02]"
+            className="w-[480px] max-w-full h-[56px] bg-[#9cb5ff] hover:bg-[#b0c5ff] rounded-[100px] text-white text-[22px] transition-all hover:scale-[1.02]"
+            style={{ fontFamily: "NeoDungGeunMo, monospace" }}
           >
             속마음 번역 할래말래
           </button>
 
-          {/* 이스터에그 — Figma: 12px, rgba(255,255,255,0.33), text-shadow 0 0 10px #b2caff, 버튼 아래 중앙 */}
-          <p
-            className="text-[12px] text-[rgba(255,255,255,0.33)] text-center w-[383px] max-w-full mt-[10px]"
-            style={{ textShadow: '0px 0px 10px #b2caff' }}
-          >
-            이스터에그 숨겨뒀다잉
-          </p>
         </div>
 
-        {/* ===== 구분선 — Figma: x=563, vertical ===== */}
-        <div className="hidden md:block w-px bg-[rgba(255,255,255,0.1)] absolute left-[563px] top-[32px] bottom-[32px]" />
+        {/* ===== 구분선 ===== */}
+        <div className="hidden md:block w-px bg-[rgba(255,255,255,0.1)] absolute left-[62%] top-[32px] bottom-[32px]" />
 
-        {/* ===== 오른쪽: 랭킹 영역 ===== */}
-        {/* Figma: 검색바 시작 x=626 (카드 기준), 상단 패딩 45px */}
-        <div className="flex-1 pl-[63px] pr-[40px] py-[45px] flex flex-col">
+        {/* ===== 오른쪽: 랭킹 영역 (38%) ===== */}
+        <div className="w-full md:w-[38%] shrink-0 py-[50px] flex flex-col items-center justify-center">
 
-          {/* 검색바 — Figma: 201×48, bg rgba(255,255,255,0.23), border #fcbfff, rounded 5 */}
-          <div className="relative mb-[24px]">
+          {/* 검색바 — 상단 중앙 */}
+          <div className="relative mb-[16px]">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="임마 어딨노?"
-              className="w-[201px] h-[48px] bg-[rgba(255,255,255,0.23)] border border-[#fcbfff] rounded-[5px] px-[19px] pr-[40px] text-white text-[20px] placeholder-[rgba(255,255,255,0.33)] focus:outline-none focus:border-[#ff9cee]"
+              className="w-[260px] h-[50px] bg-[rgba(255,255,255,0.23)] border border-[#fcbfff] rounded-[5px] px-[19px] pr-[44px] text-white text-[20px] placeholder-[rgba(255,255,255,0.33)] focus:outline-none focus:border-[#ff9cee]"
             />
-            {/* 돋보기 아이콘 — Figma: x=165 (input 기준 오른쪽), 17×16 */}
             <svg
-              className="absolute left-[176px] top-1/2 -translate-y-1/2 w-[17px] h-[16px] text-[rgba(255,255,255,0.33)]"
+              className="absolute right-[14px] top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[rgba(255,255,255,0.33)]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -147,9 +140,9 @@ export default function MainPage() {
 
           {/* 검색 결과 */}
           {searched && (
-            <div className="mb-[12px] p-[10px] bg-[rgba(255,255,255,0.08)] rounded-[5px] max-w-[220px]">
+            <div className="mb-[12px] p-[10px] bg-[rgba(255,255,255,0.08)] rounded-[5px] text-center">
               {searchResult ? (
-                <p className="text-white text-[14px]">
+                <p className="text-white text-[15px]">
                   {searchResult.name} — {searchResult.rank}위 ·{' '}
                   <span className="text-[#ff9cee]" style={{ textShadow: '4px 0px 10px #e0f' }}>
                     딴짓 {searchResult.play_count}번 째!
@@ -161,9 +154,19 @@ export default function MainPage() {
             </div>
           )}
 
-          {/* 랭킹 리스트 — 6위까지 */}
-          <RankingList rankings={rankings} />
+          {/* 랭킹 리스트 — 6위까지, 중앙 정렬 */}
+          <div className="mt-[24px]">
+            <RankingList rankings={rankings} />
+          </div>
         </div>
+
+        {/* 이스터에그 — 오른쪽 하단 */}
+        <p
+          className="absolute bottom-[14px] right-[20px] text-[9px] text-[rgba(255,255,255,0.08)]"
+          style={{ textShadow: '0px 0px 6px #b2caff' }}
+        >
+          이스타-에그데이
+        </p>
       </div>
     </div>
   );

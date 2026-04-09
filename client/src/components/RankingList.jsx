@@ -11,19 +11,19 @@
 
 const RANK_STYLES = [
   {
-    trophy: '🏆',
+    trophy: '/images/medal-gold.png',
     numShadow: '5px 0px 10px #ffdd00',
     nameWeight: 600,
     nameShadow: '5px 0px 10px rgba(255, 246, 0, 0.25)',
   },
   {
-    trophy: '🥈',
+    trophy: '/images/medal-silver.png',
     numShadow: '5px 0px 10px white',
     nameWeight: 400,
     nameShadow: '5px 0px 10px white',
   },
   {
-    trophy: '🥉',
+    trophy: '/images/medal-bronze.png',
     numShadow: '5px 0px 10px #b25c00',
     nameWeight: 400,
     nameShadow: '5px 0px 10px #df6c00',
@@ -38,23 +38,23 @@ export function RankingList({ rankings }) {
   const items = rankings.slice(0, 6);
 
   return (
-    <div className="flex flex-col gap-[8px] flex-1" style={INTER}>
+    <div className="flex flex-col items-center gap-[10px]" style={INTER}>
       {items.map((player, i) => {
         const style = RANK_STYLES[i]; // undefined for 4~6위
         const hasTrophy = i < 3;
 
         return (
-          <div key={i} className="flex items-center gap-[8px]">
+          <div key={i} className="flex items-center gap-[10px]">
             {/* 트로피 (1~3위만) */}
             {hasTrophy ? (
-              <span className="text-[18px] w-[25px] text-center shrink-0">{style.trophy}</span>
+              <img src={style.trophy} alt="" className="w-[28px] h-[36px] object-contain shrink-0" />
             ) : (
-              <span className="w-[25px] shrink-0" />
+              <span className="w-[28px] shrink-0" />
             )}
 
             {/* 순위 번호 — 모두 Kablammo 폰트 */}
             <span
-              className="text-[20px] text-white text-center w-[34px] shrink-0"
+              className="text-[24px] text-white text-center w-[40px] shrink-0"
               style={{
                 ...KABLAMMO,
                 textShadow: style?.numShadow || 'none',
@@ -65,7 +65,7 @@ export function RankingList({ rankings }) {
 
             {/* 이름 */}
             <span
-              className="text-[20px] text-white"
+              className="text-[24px] text-white w-[5em] shrink-0"
               style={{
                 fontWeight: style?.nameWeight || 400,
                 textShadow: style?.nameShadow || 'none',
@@ -74,9 +74,9 @@ export function RankingList({ rankings }) {
               {player.name}
             </span>
 
-            {/* 플레이 횟수 — Figma: #ff9cee, 12px, text-shadow 4px 0 10px #e0f */}
+            {/* 플레이 횟수 */}
             <span
-              className="text-[12px] text-[#ff9cee] ml-auto whitespace-nowrap"
+              className="text-[14px] text-[#ff9cee] w-[120px] text-right whitespace-nowrap shrink-0"
               style={{ textShadow: '4px 0px 10px #ee00ff' }}
             >
               딴짓 {player.play_count}번 째!
