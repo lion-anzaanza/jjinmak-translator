@@ -7,6 +7,9 @@ export default function MainPage() {
   const [friendName, setFriendName] = useState('');
   const [dontRecord, setDontRecord] = useState(false);
   const [rankings, setRankings] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [searched, setSearched] = useState(false);
 
   useEffect(() => {
     fetchRanking();
@@ -16,6 +19,14 @@ export default function MainPage() {
     const res = await fetch('/api/ranking');
     const data = await res.json();
     setRankings(data.ranking);
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    const res = await fetch(`/api/search?name=${encodeURIComponent(searchQuery.trim())}`);
+    const data = await res.json();
+    setSearchResult(data.result);
+    setSearched(true);
   };
 
   const handleTranslate = async () => {
@@ -44,6 +55,35 @@ export default function MainPage() {
         dontRecord={dontRecord}
         setDontRecord={setDontRecord}
       />
+
+      {/* 검색 */}
+      <div className="w-full max-w-md mt-6 mb-4">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setSearched(false); }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="🔍 친구 이름 검색"
+            className="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-lg focus:outline-none focus:border-purple-500"
+          />
+          <button
+            onClick={handleSearch}
+            className="px-4 py-2 bg-gray-700 rounded text-lg font-bold hover:bg-gray-600 transition-all"
+          >
+            검색
+          </button>
+        </div>
+        {searched && (
+          <div className="mt-3 p-3 bg-gray-900 rounded text-lg">
+            {searchResult ? (
+              <p>{searchResult.name} — {searchResult.rank}위 · {searchResult.play_count}판 째 게임중!</p>
+            ) : (
+              <p className="text-gray-500">검색 결과가 없습니다.</p>
+            )}
+          </div>
+        )}
+      </div>
 
       <button
         onClick={handleTranslate}
