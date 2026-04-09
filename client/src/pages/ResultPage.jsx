@@ -1,5 +1,6 @@
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'motion/react';
 
 // 한글 대응 Base64 인코딩/디코딩
 function toBase64(obj) {
@@ -15,7 +16,7 @@ function fromBase64(str) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
-function ResultPage() {
+export default function ResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -41,38 +42,39 @@ function ResultPage() {
 
   const localCount = useRef(initialPlayCount || 1);
   const [playCount, setPlayCount] = useState(initialPlayCount || 1);
-  const [displayPhrase, setDisplayPhrase] = useState('');
-  const [isAnimating, setIsAnimating] = useState(!shared);
+  const [displayedMessage, setDisplayedMessage] = useState('');
+  const [isSlotting, setIsSlotting] = useState(!shared);
 
-  const dummyPhrases = [
-    '두근두근...',
-    '읽는 중...',
-    '해석 중...',
-    '거의 다 됐어...',
+  const slotMessages = [
+    '두근두근...', '읽는 중...', '해석 중...', '거의 다 됐어...',
+    '음...', '잠깐만...', '뭐라고?', '헉...',
   ];
 
   useEffect(() => {
     if (!phrase) return;
 
-    if (shared) {
-      setDisplayPhrase(phrase);
+    if (!isSlotting) {
+      setDisplayedMessage(phrase);
       return;
     }
 
     let count = 0;
     const interval = setInterval(() => {
-      if (count < 8) {
-        setDisplayPhrase(dummyPhrases[count % dummyPhrases.length]);
-        count++;
-      } else {
-        setDisplayPhrase(phrase);
-        setIsAnimating(false);
-        clearInterval(interval);
-      }
-    }, 200);
+      setDisplayedMessage(slotMessages[count % slotMessages.length]);
+      count++;
+    }, 100);
 
-    return () => clearInterval(interval);
-  }, [phrase]);
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      setIsSlotting(false);
+      setDisplayedMessage(phrase);
+    }, 2000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [phrase, isSlotting]);
 
   if (!stateData) {
     navigate('/');
@@ -109,7 +111,7 @@ function ResultPage() {
       round: playCount,
       message: phrase,
     });
-    const url = `${window.location.origin}/result?q=${payload}`;
+    const url = `${window.location.origin}/result?q=${encodeURIComponent(payload)}`;
     if (navigator.share) {
       navigator.share({ url });
     } else {
@@ -117,7 +119,6 @@ function ResultPage() {
         await navigator.clipboard.writeText(url);
         alert('링크가 복사되었습니다!');
       } catch {
-        // HTTP 환경에서 clipboard API 사용 불가 시 fallback
         const textarea = document.createElement('textarea');
         textarea.value = url;
         document.body.appendChild(textarea);
@@ -130,19 +131,57 @@ function ResultPage() {
   };
 
   return (
-    <div className="result-page">
-      <h2>'{name}'의 속마음은…</h2>
-      <div className={`phrase-display ${isAnimating ? 'animating' : 'revealed'}`}>
-        "{displayPhrase}"
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6" style={{ fontFamily: "'Gaegu', cursive" }}>
+      <h2 className="text-3xl mb-8">
+        <span className="font-bold text-purple-400">'{name}'</span>의 속마음은…
+      </h2>
+
+      <motion.div
+        key={displayedMessage}
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="mb-8"
+      >
+        <p className="text-7xl font-bold text-center bg-gradient-to-r from-yellow-400 to-pink-500 bg-clip-text text-transparent">
+          "{displayedMessage}"
+        </p>
+      </motion.div>
+
+      <p className="text-lg font-bold text-gray-300 mb-6">
+        현재 <span className="text-purple-400">{playCount}판</span> 째
+      </p>
+
+      <button
+        onClick={handleShare}
+        className="mb-8 px-8 py-3 bg-blue-500 rounded-full text-lg font-bold hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg"
+      >
+        공유하기
+      </button>
+
+      <div className="flex gap-4">
+        <button
+          onClick={handleRetry}
+          className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-lg font-bold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg"
+        >
+          다시 돌리기
+        </button>
+        <button
+          onClick={() => navigate('/')}
+          className="px-8 py-3 bg-gray-600 rounded-full text-lg font-bold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-lg"
+        >
+          돌아가기
+        </button>
       </div>
-      <p className="play-count">현재 {playCount}판 째</p>
-      <div className="result-buttons">
-        <button onClick={handleShare}>공유하기</button>
-        <button onClick={handleRetry}>다시 돌리기</button>
-        <button onClick={() => navigate('/')}>돌아가기</button>
-      </div>
+
+      <div className="fixed top-10 left-10 text-4xl opacity-50">✨</div>
+      <div className="fixed top-20 left-32 text-3xl opacity-30">✨</div>
+      <div className="fixed top-10 right-10 text-4xl opacity-50">✨</div>
+      <div className="fixed top-20 right-32 text-3xl opacity-30">✨</div>
+      <div className="fixed bottom-20 left-20 text-5xl opacity-40">💭</div>
+      <div className="fixed bottom-32 right-24 text-4xl opacity-40">😴</div>
+      <div className="fixed top-1/3 left-10 text-3xl opacity-30">📚</div>
+      <div className="fixed top-1/2 right-12 text-3xl opacity-30">😅</div>
     </div>
   );
 }
-
-export default ResultPage;

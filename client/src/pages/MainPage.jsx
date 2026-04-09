@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RankingList } from '../components/RankingList';
 
-function MainPage() {
-  const [name, setName] = useState('');
-  const [skipRanking, setSkipRanking] = useState(false);
-  const [ranking, setRanking] = useState([]);
-  const [search, setSearch] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
-  const [searched, setSearched] = useState(false);
+export default function MainPage() {
   const navigate = useNavigate();
+  const [friendName, setFriendName] = useState('');
+  const [dontRecord, setDontRecord] = useState(false);
+  const [rankings, setRankings] = useState([]);
 
   useEffect(() => {
     fetchRanking();
@@ -17,99 +15,47 @@ function MainPage() {
   const fetchRanking = async () => {
     const res = await fetch('/api/ranking');
     const data = await res.json();
-    setRanking(data.ranking);
-  };
-
-  const handleSearch = async () => {
-    if (!search.trim()) return;
-    const res = await fetch(`/api/search?name=${encodeURIComponent(search.trim())}`);
-    const data = await res.json();
-    setSearchResult(data.result);
-    setSearched(true);
+    setRankings(data.ranking);
   };
 
   const handleTranslate = async () => {
-    if (!name.trim()) return;
+    if (!friendName.trim()) {
+      alert('친구 이름을 입력해주세요!');
+      return;
+    }
 
     const res = await fetch('/api/translate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), skipRanking }),
+      body: JSON.stringify({ name: friendName.trim(), skipRanking: dontRecord }),
     });
     const data = await res.json();
-    navigate('/result', { state: { ...data, skipRanking } });
+    navigate('/result', { state: { ...data, skipRanking: dontRecord } });
   };
 
-  // 올림픽 시상대 순서: 2등(왼쪽) - 1등(가운데) - 3등(오른쪽)
-  const podiumOrder = [ranking[1], ranking[0], ranking[2]];
-
   return (
-    <div className="main-page">
-      <h1>찐막 속마음 번역기</h1>
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6" style={{ fontFamily: "'Gaegu', cursive" }}>
+      <h1 className="text-6xl font-bold mb-12">니,,, 공부할끼가?</h1>
 
-      <div className="ranking-section">
-        <div className="podium">
-          {podiumOrder.map((player, i) => {
-            if (!player) return <div key={i} className="podium-slot empty" />;
-            const rank = i === 0 ? 2 : i === 1 ? 1 : 3;
-            return (
-              <div key={i} className={`podium-slot rank-${rank}`}>
-                <span className="podium-name">{player.name}</span>
-                <div className={`podium-bar bar-${rank}`}>
-                  <span className="podium-rank">{rank}</span>
-                </div>
-                <span className="podium-count">{player.play_count}판</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <RankingList
+        rankings={rankings}
+        friendName={friendName}
+        setFriendName={setFriendName}
+        dontRecord={dontRecord}
+        setDontRecord={setDontRecord}
+      />
 
-      <div className="search-section">
-        <div className="search-bar">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setSearched(false); }}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="이름으로 검색"
-          />
-          <button onClick={handleSearch}>검색</button>
-        </div>
-        {searched && (
-          <div className="search-result">
-            {searchResult ? (
-              <p>{searchResult.name} — {searchResult.rank}위 · {searchResult.play_count}판 째 게임중!</p>
-            ) : (
-              <p>검색 결과가 없습니다.</p>
-            )}
-          </div>
-        )}
-      </div>
+      <button
+        onClick={handleTranslate}
+        className="mt-8 px-12 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-xl font-bold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg"
+      >
+        속마음 번역하기
+      </button>
 
-      <div className="input-section">
-        <h2>친구 이름은...</h2>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="이름을 입력하세요"
-          onKeyDown={(e) => e.key === 'Enter' && handleTranslate()}
-        />
-        <label>
-          <input
-            type="checkbox"
-            checked={skipRanking}
-            onChange={(e) => setSkipRanking(e.target.checked)}
-          />
-          랭크에 기록 안 할래요.
-        </label>
-        <button className="translate-btn" onClick={handleTranslate}>
-          속마음 번역하기
-        </button>
-      </div>
+      <div className="fixed top-10 left-10 text-4xl opacity-50">✨</div>
+      <div className="fixed top-20 left-32 text-3xl opacity-30">✨</div>
+      <div className="fixed top-10 right-10 text-4xl opacity-50">✨</div>
+      <div className="fixed top-20 right-32 text-3xl opacity-30">✨</div>
     </div>
   );
 }
-
-export default MainPage;
