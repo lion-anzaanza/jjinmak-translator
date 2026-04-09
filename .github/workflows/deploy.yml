@@ -37,11 +37,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/jjinmak-translator:latest
+            mkdir -p ~/jjinmak-data
+            docker cp jjinmak:/app/db/jjinmak.db ~/jjinmak-data/jjinmak.db 2>/dev/null || true
             docker stop jjinmak || true
             docker rm jjinmak || true
             docker run -d \
               --name jjinmak \
               -p 80:5000 \
+              -v ~/jjinmak-data:/app/db \
               --restart unless-stopped \
               ${{ secrets.DOCKERHUB_USERNAME }}/jjinmak-translator:latest
             docker image prune -f

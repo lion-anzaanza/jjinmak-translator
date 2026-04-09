@@ -47,14 +47,14 @@ export function RankingList({ rankings }) {
           <div key={i} className="flex items-center gap-[10px]">
             {/* 트로피 (1~3위만) */}
             {hasTrophy ? (
-              <img src={style.trophy} alt="" className="w-[28px] h-[36px] object-contain shrink-0" />
+              <img src={style.trophy} alt="" className="w-[22px] md:w-[28px] h-[28px] md:h-[36px] object-contain shrink-0" />
             ) : (
-              <span className="w-[28px] shrink-0" />
+              <span className="w-[22px] md:w-[28px] shrink-0" />
             )}
 
             {/* 순위 번호 — 모두 Kablammo 폰트 */}
             <span
-              className="text-[24px] text-white text-center w-[40px] shrink-0"
+              className="text-[18px] md:text-[24px] text-white text-center w-[30px] md:w-[40px] shrink-0"
               style={{
                 ...KABLAMMO,
                 textShadow: style?.numShadow || 'none',
@@ -65,7 +65,7 @@ export function RankingList({ rankings }) {
 
             {/* 이름 */}
             <span
-              className="text-[24px] text-white w-[5em] shrink-0"
+              className="text-[18px] md:text-[24px] text-white w-[4em] md:w-[5em] shrink-0"
               style={{
                 fontWeight: style?.nameWeight || 400,
                 textShadow: style?.nameShadow || 'none',
@@ -76,7 +76,7 @@ export function RankingList({ rankings }) {
 
             {/* 플레이 횟수 */}
             <span
-              className="text-[14px] text-[#ff9cee] w-[120px] text-right whitespace-nowrap shrink-0"
+              className="text-[12px] md:text-[14px] text-[#ff9cee] w-[100px] md:w-[120px] text-right whitespace-nowrap shrink-0"
               style={{ textShadow: '4px 0px 10px #ee00ff' }}
             >
               딴짓 {player.play_count}번 째!

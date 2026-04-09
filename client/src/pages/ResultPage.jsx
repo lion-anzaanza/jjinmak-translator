@@ -131,22 +131,22 @@ export default function ResultPage() {
   return (
     <div className="marble-bg min-h-screen flex items-center justify-center p-6">
       {/* 중앙 카드 */}
-      <div className="bg-black rounded-[30px] w-full max-w-[1200px] h-[540px] mx-4 shadow-2xl relative z-10 flex flex-col items-center justify-center px-16 py-12">
+      <div className="bg-black rounded-[20px] md:rounded-[30px] w-full max-w-[1200px] md:h-[540px] mx-2 md:mx-4 shadow-2xl relative z-10 flex flex-col items-center justify-center px-4 py-8 md:px-16 md:py-12">
         {/* 상단 텍스트 */}
         <div className="text-center mb-8">
-          <p className="text-white text-[22px] font-bold" style={NEODGM}>
+          <p className="text-white text-[16px] md:text-[22px] font-bold" style={NEODGM}>
             '{name}'의 속마음은 ...
           </p>
         </div>
 
         {/* 메인 번역 텍스트 (슬롯머신 애니메이션 유지) */}
-        <div className="text-center mb-10 px-8">
+        <div className="text-center mb-6 md:mb-10 px-2 md:px-8">
           <motion.p
             key={displayedMessage}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="text-6xl font-black leading-snug"
+            className="text-2xl md:text-6xl font-black leading-snug"
             style={{
               background: 'linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)',
               WebkitBackgroundClip: 'text',
@@ -159,7 +159,7 @@ export default function ResultPage() {
         </div>
 
         {/* 배지/통계 */}
-        <div className="flex flex-col items-center gap-2 mb-10">
+        <div className="flex flex-col items-center gap-2 mb-6 md:mb-10">
           <div className="flex items-center justify-center">
             <span className="text-white text-[18px]" style={NEODGM}>
               현재 <span className="font-bold text-[26px] text-pink-500">{playCount}판</span> 째
@@ -175,24 +175,24 @@ export default function ResultPage() {
         </div>
 
         {/* 버튼들 */}
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-2 md:gap-4">
           <button
             onClick={handleShare}
-            className="text-white rounded-full font-bold transition-colors w-[140px] h-[48px] flex items-center justify-center text-[16px] hover:brightness-110"
+            className="text-white rounded-full font-bold transition-colors w-[100px] md:w-[140px] h-[40px] md:h-[48px] flex items-center justify-center text-[13px] md:text-[16px] hover:brightness-110"
             style={{ ...NEODGM, backgroundColor: '#9CB5FF' }}
           >
             이거봐라
           </button>
           <button
             onClick={handleRetry}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[180px] h-[48px] flex items-center justify-center text-[18px]"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[120px] md:w-[180px] h-[40px] md:h-[48px] flex items-center justify-center text-[14px] md:text-[18px]"
             style={{ ...NEODGM, fontWeight: 900 }}
           >
             찐막 ?
           </button>
           <button
             onClick={() => navigate('/', { state: { resetSeen: true } })}
-            className="bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold transition-colors w-[140px] h-[48px] flex items-center justify-center text-[16px]"
+            className="bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold transition-colors w-[100px] md:w-[140px] h-[40px] md:h-[48px] flex items-center justify-center text-[13px] md:text-[16px]"
             style={NEODGM}
           >
             고마하자..
