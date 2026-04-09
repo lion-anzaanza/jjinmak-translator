@@ -101,7 +101,7 @@ app.get('/api/ranking', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const publicPath = path.join(__dirname, 'public');
   app.use(express.static(publicPath));
-  app.get('*', (req, res) => {
+  app.get('/{*path}', (req, res) => {
     res.sendFile(path.join(publicPath, 'index.html'));
   });
 }
