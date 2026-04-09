@@ -12,7 +12,7 @@ WORKDIR /app
 COPY server/package*.json ./
 RUN npm ci --omit=dev
 COPY server/ ./
-COPY --from=client-build /app/client/build ./public
+COPY --from=client-build /app/client/dist ./public
 
 ENV NODE_ENV=production
 ENV PORT=5000
