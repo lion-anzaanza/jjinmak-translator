@@ -66,6 +66,18 @@ app.get('/api/ranking', (req, res) => {
   res.json({ ranking: rows });
 });
 
+// API: 이름 검색 (순위 + 플레이 횟수)
+app.get('/api/search', (req, res) => {
+  const name = req.query.name || '';
+  if (!name.trim()) return res.json({ result: null });
+
+  const player = db.prepare('SELECT name, play_count FROM players WHERE name = ?').get(name.trim());
+  if (!player) return res.json({ result: null });
+
+  const rank = db.prepare('SELECT COUNT(*) as rank FROM players WHERE play_count > ?').get(player.play_count).rank + 1;
+  res.json({ result: { ...player, rank } });
+});
+
 // 프로덕션: React 빌드 파일 서빙
 if (process.env.NODE_ENV === 'production') {
   const publicPath = path.join(__dirname, 'public');

@@ -1,19 +1,32 @@
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 
 function ResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { data: shareData } = useParams();
+  const [searchParams] = useSearchParams();
 
-  // 공유 링크로 접속한 경우 Base64 디코딩
-  const shared = shareData
-    ? JSON.parse(atob(shareData))
-    : null;
+  // 공유 링크로 접속한 경우 쿼리스트링에서 디코딩
+  const shared = (() => {
+    const q = searchParams.get('q');
+    if (!q) return null;
+    try {
+      const decoded = JSON.parse(atob(q));
+      return {
+        name: decoded.name,
+        phrase: decoded.message,
+        playCount: decoded.round,
+      };
+    } catch {
+      return null;
+    }
+  })();
 
   const stateData = location.state || shared;
-  const { name, phrase, playCount, skipRanking } = stateData || {};
+  const { name, phrase, playCount: initialPlayCount, skipRanking } = stateData || {};
 
+  const localCount = useRef(initialPlayCount || 1);
+  const [playCount, setPlayCount] = useState(initialPlayCount || 1);
   const [displayPhrase, setDisplayPhrase] = useState('');
   const [isAnimating, setIsAnimating] = useState(!shared);
 
@@ -27,7 +40,6 @@ function ResultPage() {
   useEffect(() => {
     if (!phrase) return;
 
-    // 공유 링크로 온 경우 애니메이션 스킵
     if (shared) {
       setDisplayPhrase(phrase);
       return;
@@ -60,13 +72,31 @@ function ResultPage() {
       body: JSON.stringify({ name, skipRanking: skipRanking || false }),
     });
     const data = await res.json();
-    navigate('/result', { state: { ...data, skipRanking }, replace: true });
+
+    // skipRanking이면 서버 playCount 대신 로컬 카운트 사용
+    if (skipRanking) {
+      localCount.current += 1;
+      navigate('/result', {
+        state: { ...data, playCount: localCount.current, skipRanking },
+        replace: true,
+      });
+    } else {
+      localCount.current = data.playCount;
+      navigate('/result', {
+        state: { ...data, skipRanking },
+        replace: true,
+      });
+    }
     window.location.reload();
   };
 
   const handleShare = () => {
-    const payload = btoa(JSON.stringify({ name, phrase, playCount }));
-    const url = `${window.location.origin}/share/${payload}`;
+    const payload = btoa(JSON.stringify({
+      name,
+      round: playCount,
+      message: phrase,
+    }));
+    const url = `${window.location.origin}/result?q=${payload}`;
     if (navigator.share) {
       navigator.share({ url });
     } else {

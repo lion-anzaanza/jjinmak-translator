@@ -6,6 +6,8 @@ function MainPage() {
   const [skipRanking, setSkipRanking] = useState(false);
   const [ranking, setRanking] = useState([]);
   const [search, setSearch] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [searched, setSearched] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,6 +18,14 @@ function MainPage() {
     const res = await fetch('/api/ranking');
     const data = await res.json();
     setRanking(data.ranking);
+  };
+
+  const handleSearch = async () => {
+    if (!search.trim()) return;
+    const res = await fetch(`/api/search?name=${encodeURIComponent(search.trim())}`);
+    const data = await res.json();
+    setSearchResult(data.result);
+    setSearched(true);
   };
 
   const handleTranslate = async () => {
@@ -30,28 +40,14 @@ function MainPage() {
     navigate('/result', { state: { ...data, skipRanking } });
   };
 
-  const filtered = ranking.filter((p) =>
-    p.name.includes(search)
-  );
-
   // 올림픽 시상대 순서: 2등(왼쪽) - 1등(가운데) - 3등(오른쪽)
-  const podiumOrder = [filtered[1], filtered[0], filtered[2]];
+  const podiumOrder = [ranking[1], ranking[0], ranking[2]];
 
   return (
     <div className="main-page">
       <h1>찐막 속마음 번역기</h1>
 
       <div className="ranking-section">
-        <div className="ranking-header">
-          <h2>랭킹</h2>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="이름 검색"
-            className="ranking-search"
-          />
-        </div>
         <div className="podium">
           {podiumOrder.map((player, i) => {
             if (!player) return <div key={i} className="podium-slot empty" />;
@@ -67,6 +63,28 @@ function MainPage() {
             );
           })}
         </div>
+      </div>
+
+      <div className="search-section">
+        <div className="search-bar">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setSearched(false); }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="이름으로 검색"
+          />
+          <button onClick={handleSearch}>검색</button>
+        </div>
+        {searched && (
+          <div className="search-result">
+            {searchResult ? (
+              <p>{searchResult.name} — {searchResult.rank}위 · {searchResult.play_count}판 째 게임중!</p>
+            ) : (
+              <p>검색 결과가 없습니다.</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="input-section">

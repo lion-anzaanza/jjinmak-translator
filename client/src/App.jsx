@@ -9,7 +9,6 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/result" element={<ResultPage />} />
-        <Route path="/share/:data" element={<ResultPage />} />
       </Routes>
     </Router>
   );
