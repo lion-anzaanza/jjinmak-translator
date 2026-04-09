@@ -1,5 +1,5 @@
 # 1단계: React 빌드
-FROM node:20-alpine AS client-build
+FROM node:22-alpine AS client-build
 WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY client/ ./
 RUN npm run build
 
 # 2단계: 서버 + 빌드 결과물
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 COPY server/package*.json ./
 RUN npm ci --omit=dev
