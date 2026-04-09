@@ -103,7 +103,7 @@ function ResultPage() {
     window.location.reload();
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const payload = toBase64({
       name,
       round: playCount,
@@ -113,8 +113,19 @@ function ResultPage() {
     if (navigator.share) {
       navigator.share({ url });
     } else {
-      navigator.clipboard.writeText(url);
-      alert('링크가 복사되었습니다!');
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('링크가 복사되었습니다!');
+      } catch {
+        // HTTP 환경에서 clipboard API 사용 불가 시 fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('링크가 복사되었습니다!');
+      }
     }
   };
 
