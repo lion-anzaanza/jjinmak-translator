@@ -21,13 +21,20 @@ export default function MainPage() {
     setRankings(data.ranking);
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    const res = await fetch(`/api/search?name=${encodeURIComponent(searchQuery.trim())}`);
-    const data = await res.json();
-    setSearchResult(data.result);
-    setSearched(true);
-  };
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResult(null);
+      setSearched(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const res = await fetch(`/api/search?name=${encodeURIComponent(searchQuery.trim())}`);
+      const data = await res.json();
+      setSearchResult(data.result);
+      setSearched(true);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleTranslate = async () => {
     if (!friendName.trim()) {
@@ -58,22 +65,13 @@ export default function MainPage() {
 
       {/* 검색 */}
       <div className="w-full max-w-md mt-6 mb-4">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setSearched(false); }}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="🔍 친구 이름 검색"
-            className="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-lg focus:outline-none focus:border-purple-500"
-          />
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 bg-gray-700 rounded text-lg font-bold hover:bg-gray-600 transition-all"
-          >
-            검색
-          </button>
-        </div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="🔍 친구 이름 검색"
+          className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-lg focus:outline-none focus:border-purple-500"
+        />
         {searched && (
           <div className="mt-3 p-3 bg-gray-900 rounded text-lg">
             {searchResult ? (
