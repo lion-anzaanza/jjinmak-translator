@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "reset-db": "ssh -i C:/Users/pupaj/.ssh/jjinmak.pem -p 20022 ec2-user@13.125.78.175 \"docker stop jjinmak && rm -f ~/jjinmak-data/jjinmak.db ~/jjinmak-data/jjinmak.db-shm ~/jjinmak-data/jjinmak.db-wal && docker start jjinmak\" && echo DB 초기화 완료!",
+    "delete-player": "node delete-player.js"
   },
   "keywords": [],
   "author": "",

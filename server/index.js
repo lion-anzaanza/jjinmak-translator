@@ -30,6 +30,9 @@ db.exec(`
 // 속마음 문구 목록 (server/phrases.json에서 관리)
 const phrases = JSON.parse(fs.readFileSync(path.join(__dirname, 'phrases.json'), 'utf-8'));
 
+// 금지어 목록 (server/bannedWords.json에서 관리)
+const bannedWords = JSON.parse(fs.readFileSync(path.join(__dirname, 'bannedWords.json'), 'utf-8'));
+
 // API: 속마음 번역하기
 app.post('/api/translate', (req, res) => {
   const { name, skipRanking } = req.body;
@@ -39,6 +42,15 @@ app.post('/api/translate', (req, res) => {
   }
 
   const trimmedName = name.trim();
+
+  if (!/^[가-힣]+$/.test(trimmedName)) {
+    return res.status(400).json({ error: '한글 이름만 입력할 수 있습니다.' });
+  }
+
+  if (bannedWords.some(word => trimmedName.includes(word))) {
+    return res.status(400).json({ error: '사용할 수 없는 이름입니다.' });
+  }
+
   const phrase = phrases[Math.floor(Math.random() * phrases.length)];
 
   let playCount = 1;

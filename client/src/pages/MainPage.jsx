@@ -50,6 +50,10 @@ export default function MainPage() {
       body: JSON.stringify({ name: friendName.trim(), skipRanking: dontRecord }),
     });
     const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || '오류가 발생했습니다.');
+      return;
+    }
     navigate('/result', { state: { ...data, playCount: 1, skipRanking: dontRecord } });
   };
 
@@ -74,7 +78,7 @@ export default function MainPage() {
           <input
             type="text"
             value={friendName}
-            onChange={(e) => { if (e.target.value.length <= 5) setFriendName(e.target.value); }}
+            onChange={(e) => { const v = e.target.value.replace(/[^가-힣]/g, ''); if (v.length <= 5) setFriendName(v); }}
             onKeyDown={(e) => e.key === 'Enter' && handleTranslate()}
             maxLength={5}
             placeholder="친구 이름이 뭐고?"
@@ -112,7 +116,7 @@ export default function MainPage() {
         <div className="hidden md:block w-px bg-[rgba(255,255,255,0.1)] absolute left-[62%] top-[32px] bottom-[32px]" />
 
         {/* ===== 오른쪽: 랭킹 영역 (38%) ===== */}
-        <div className="w-full md:w-[38%] shrink-0 py-8 md:py-[50px] flex flex-col items-center justify-center">
+        <div className="w-full md:w-[38%] shrink-0 py-8 md:py-[50px] flex flex-col items-center justify-center overflow-y-auto">
 
           {/* 검색바 — 상단 중앙 */}
           <div className="relative mb-[16px]">
