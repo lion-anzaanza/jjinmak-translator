@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RankingList } from '../components/RankingList';
+import { RankingList, RankingNotice } from '../components/RankingList';
 
 const FONT = "Inter, 'Noto Sans KR', sans-serif";
 
@@ -165,6 +165,7 @@ export default function MainPage() {
           <div className="mt-[24px] max-h-[300px] overflow-y-auto hide-scrollbar">
             <RankingList rankings={rankings} />
           </div>
+          <RankingNotice />
         </div>
 
         {/* 이스터에그 — 오른쪽 하단 */}

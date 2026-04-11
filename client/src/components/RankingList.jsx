@@ -90,3 +90,18 @@ export function RankingList({ rankings }) {
     </div>
   );
 }
+
+export function RankingNotice() {
+  return (
+    <div className="flex items-center gap-[10px] mt-[16px]">
+      {/* 트로피 자리 */}
+      <span className="w-[22px] md:w-[28px] shrink-0" />
+      {/* 번호 자리 */}
+      <span className="w-[30px] md:w-[40px] shrink-0" />
+      {/* 이름+플레이횟수 자리를 합쳐서 우측 정렬 */}
+      <span className="text-[12px] text-[rgba(255,255,255,0.15)] whitespace-nowrap shrink-0 w-[200px] md:w-[250px] text-right">
+        랭킹은 월요일 아침마다 초기화된데이
+      </span>
+    </div>
+  );
+}

@@ -114,6 +114,28 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// 매주 월요일 KST 00:00 랭킹 초기화
+function resetRanking() {
+  db.exec('DELETE FROM players');
+  console.log(`[${new Date().toISOString()}] 랭킹 초기화 완료`);
+}
+
+function msUntilNextMondayKST() {
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  const daysUntilMonday = (8 - now.getDay()) % 7 || 7;
+  const nextMonday = new Date(now);
+  nextMonday.setDate(now.getDate() + daysUntilMonday);
+  nextMonday.setHours(0, 0, 0, 0);
+  return nextMonday.getTime() - now.getTime();
+}
+
+const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+setTimeout(() => {
+  resetRanking();
+  setInterval(resetRanking, ONE_WEEK);
+}, msUntilNextMondayKST());
+
 app.listen(PORT, () => {
   console.log(`서버 실행 중: http://localhost:${PORT}`);
+  console.log(`다음 랭킹 초기화: ${Math.round(msUntilNextMondayKST() / 1000 / 60 / 60)}시간 후`);
 });
