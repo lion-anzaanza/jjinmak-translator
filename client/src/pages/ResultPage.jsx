@@ -169,7 +169,9 @@ export default function ResultPage() {
           {totalPhrases && (
             <div className="text-gray-400 flex items-center justify-center">
               <span className="text-[13px]" style={NEODGM}>
-                전체 {totalPhrases}개 문장 중 {seenCount}개 발견!
+                {seenCount >= totalPhrases
+                  ? '이야~ 이 많은 걸 다 봤다꼬? 니는 인정한데이.. 고맙데이!'
+                  : `전체 ${totalPhrases}개 문장 중 ${seenCount}개 발견!`}
               </span>
             </div>
           )}
@@ -179,23 +181,26 @@ export default function ResultPage() {
         <div className="flex justify-center gap-2 md:gap-4">
           <button
             onClick={handleShare}
-            className="text-white rounded-full font-bold transition-colors w-[100px] md:w-[140px] h-[40px] md:h-[48px] flex items-center justify-center text-[13px] md:text-[16px] hover:brightness-110"
+            className="text-white rounded-full font-bold transition-colors w-[110px] md:w-[150px] h-[40px] md:h-[48px] flex items-center justify-center gap-[6px] text-[13px] md:text-[16px] hover:brightness-110"
             style={{ ...NEODGM, backgroundColor: '#9CB5FF' }}
           >
-            이거봐라
+            <img src="/images/send.svg" alt="" className="w-[16px] md:w-[18px] h-[16px] md:h-[18px] shrink-0 object-contain" />
+            <span>보내봐라</span>
           </button>
           <button
             onClick={handleRetry}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[120px] md:w-[180px] h-[40px] md:h-[48px] flex items-center justify-center text-[14px] md:text-[18px]"
-            style={{ ...NEODGM, fontWeight: 900 }}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[130px] md:w-[180px] h-[40px] md:h-[48px] flex items-center justify-center gap-[6px] text-[14px] md:text-[18px]"
+            style={{ ...NEODGM, fontWeight: 900, boxShadow: '0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3)' }}
           >
+            <img src="/images/reroll.svg" alt="" className="w-[16px] md:w-[18px] h-[16px] md:h-[18px] shrink-0 object-contain" />
             찐막 ?
           </button>
           <button
             onClick={() => navigate('/', { state: { resetSeen: true } })}
-            className="bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold transition-colors w-[100px] md:w-[140px] h-[40px] md:h-[48px] flex items-center justify-center text-[13px] md:text-[16px]"
+            className="bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold transition-colors w-[110px] md:w-[150px] h-[40px] md:h-[48px] flex items-center justify-center gap-[6px] text-[13px] md:text-[16px]"
             style={NEODGM}
           >
+            <img src="/images/back.svg" alt="" className="w-[16px] md:w-[18px] h-[16px] md:h-[18px] shrink-0 object-contain" />
             고마하자..
           </button>
         </div>

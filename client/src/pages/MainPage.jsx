@@ -119,7 +119,7 @@ export default function MainPage() {
             className="w-full max-w-[480px] h-[48px] md:h-[56px] bg-[#9cb5ff] hover:bg-[#b0c5ff] rounded-[100px] text-white text-[18px] md:text-[22px] transition-all hover:scale-[1.02]"
             style={{ fontFamily: "NeoDungGeunMo, monospace" }}
           >
-            속마음 번역 할래말래
+            고민 해결해뿌자
           </button>
 
         </div>

@@ -11,19 +11,19 @@
 
 const RANK_STYLES = [
   {
-    trophy: '/images/medal-gold.png',
+    trophy: '/images/medal-gold.svg',
     numShadow: '5px 0px 10px #ffdd00',
     nameWeight: 600,
-    nameShadow: '5px 0px 10px rgba(255, 246, 0, 0.25)',
+    nameShadow: '0px 0px 12px rgba(255, 215, 0, 0.8)',
   },
   {
-    trophy: '/images/medal-silver.png',
+    trophy: '/images/medal-silver.svg',
     numShadow: '5px 0px 10px white',
     nameWeight: 400,
     nameShadow: '5px 0px 10px white',
   },
   {
-    trophy: '/images/medal-bronze.png',
+    trophy: '/images/medal-bronze.svg',
     numShadow: '5px 0px 10px #b25c00',
     nameWeight: 400,
     nameShadow: '5px 0px 10px #df6c00',
@@ -33,15 +33,29 @@ const RANK_STYLES = [
 const KABLAMMO = { fontFamily: 'Kablammo, sans-serif', fontVariationSettings: "'MORF' 40" };
 const INTER = { fontFamily: "Inter, 'Noto Sans KR', sans-serif" };
 
+// 1~3위 플레이 횟수에 비례한 폰트 크기 계산 (모바일/데스크탑)
+function getScaledSize(rankings, index) {
+  if (index >= 3) return null; // 4위 이하는 기본 크기
+  const top3 = rankings.slice(0, 3).map(r => r.play_count);
+  const max = top3[0] || 1;
+  const min = top3[top3.length - 1] || 1;
+  const range = max - min || 1;
+  const ratio = (rankings[index].play_count - min) / range; // 0~1
+  const mobilePx = 18 + ratio * 10;  // 18~28px
+  const desktopPx = 24 + ratio * 14; // 24~38px
+  return { mobile: Math.round(mobilePx), desktop: Math.round(desktopPx) };
+}
+
 export function RankingList({ rankings }) {
   return (
     <div className="flex flex-col items-center gap-[10px]" style={INTER}>
       {rankings.map((player, i) => {
         const style = RANK_STYLES[i]; // undefined for 4~6위
         const hasTrophy = i < 3;
+        const scaled = getScaledSize(rankings, i);
 
         return (
-          <div key={i} className="flex items-center gap-[10px]">
+          <div key={i} className="flex items-center gap-[10px] h-[36px]">
             {/* 트로피 (1~3위만) */}
             {hasTrophy ? (
               <img src={style.trophy} alt="" className="w-[22px] md:w-[28px] h-[28px] md:h-[36px] object-contain shrink-0" />
@@ -62,10 +76,11 @@ export function RankingList({ rankings }) {
 
             {/* 이름 */}
             <span
-              className="text-[18px] md:text-[24px] text-white w-[5em] shrink-0 whitespace-nowrap"
+              className={`${scaled ? '' : 'text-[18px] md:text-[24px]'} text-white w-[90px] md:w-[120px] shrink-0 whitespace-nowrap`}
               style={{
                 fontWeight: style?.nameWeight || 400,
                 textShadow: style?.nameShadow || 'none',
+                ...(scaled ? { fontSize: `clamp(${scaled.mobile}px, 3vw, ${scaled.desktop}px)` } : {}),
               }}
             >
               {player.name}
