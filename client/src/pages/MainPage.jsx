@@ -112,8 +112,11 @@ export default function MainPage() {
 
         </div>
 
-        {/* ===== 구분선 ===== */}
+        {/* ===== 구분선 (데스크탑: 세로 / 모바일: 짧은 수평선) ===== */}
         <div className="hidden md:block w-px bg-[rgba(255,255,255,0.1)] absolute left-[62%] top-[32px] bottom-[32px]" />
+        <div className="md:hidden flex justify-center py-2">
+          <div className="w-[30%] h-px bg-[rgba(255,255,255,0.15)]" />
+        </div>
 
         {/* ===== 오른쪽: 랭킹 영역 (38%) ===== */}
         <div className="w-full md:w-[38%] shrink-0 py-8 md:py-[50px] flex flex-col items-center overflow-y-auto hide-scrollbar">
