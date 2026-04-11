@@ -173,7 +173,7 @@ export default function MainPage() {
           className="absolute bottom-[14px] right-[20px] text-[9px] text-[rgba(255,255,255,0.08)]"
           style={{ textShadow: '0px 0px 6px #b2caff' }}
         >
-          이스타-에그데이
+          마, 이게 이스타-에그데이
         </p>
       </div>
     </div>
