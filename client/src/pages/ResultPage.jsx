@@ -134,11 +134,11 @@ export default function ResultPage() {
   };
 
   return (
-    <div className="marble-bg min-h-screen flex items-center justify-center p-6">
+    <div className="marble-bg min-h-screen flex items-center justify-center p-3 md:p-6">
       {/* 중앙 카드 */}
-      <div className="bg-black rounded-[20px] md:rounded-[30px] w-full max-w-[1200px] md:h-[540px] mx-2 md:mx-4 shadow-2xl relative z-10 flex flex-col items-center justify-center px-4 py-8 md:px-16 md:py-12">
+      <div className="bg-black rounded-[20px] md:rounded-[30px] w-full max-w-[1200px] md:h-[540px] mx-2 md:mx-4 shadow-2xl relative z-10 flex flex-col items-center justify-center px-4 py-6 md:px-16 md:py-12 overflow-hidden">
         {/* 상단 텍스트 */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-4 md:mb-8">
           <p className="text-white text-[16px] md:text-[22px] font-bold" style={NEODGM}>
             '{name}'의 속마음은 ...
           </p>
@@ -164,7 +164,7 @@ export default function ResultPage() {
         </div>
 
         {/* 배지/통계 */}
-        <div className="flex flex-col items-center gap-2 mb-6 md:mb-10">
+        <div className="flex flex-col items-center gap-1 md:gap-2 mb-4 md:mb-10">
           <div className="flex items-center justify-center">
             <span className="text-white text-[18px]" style={NEODGM}>
               현재 <span className="font-bold text-[26px] text-pink-500">{playCount}판</span> 째
