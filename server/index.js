@@ -21,7 +21,7 @@ const cvHistory = new Map(); // IP → [cv값, ...]
 const macroBlocked = new Map(); // IP → 차단 해제 시각
 const SAMPLE_SIZE = 30;
 const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
-const META_CV_THRESHOLD = 5; // CV값의 변동계수 5% 미만이면 패턴 반복 매크로
+const META_CV_THRESHOLD = 2; // CV값의 변동계수 2% 미만이면 패턴 반복 매크로
 const META_SAMPLE_SIZE = 10; // CV값 10회 모아서 판단
 const BLOCK_DURATION = 60 * 1000; // 1분 차단
 
