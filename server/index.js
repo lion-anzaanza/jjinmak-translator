@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Nginx 프록시 뒤에서 실제 클라이언트 IP 사용
-app.set('trust proxy', 'loopback');
+app.set('trust proxy', '172.17.0.0/16');
 
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
