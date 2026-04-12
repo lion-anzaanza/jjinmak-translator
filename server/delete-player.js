@@ -1,9 +1,10 @@
 require('dotenv').config();
 const { execSync } = require('child_process');
 
-const name = process.argv[2];
-if (!name) {
-  console.log('사용법: npm run delete-player -- "이름"');
+const keyword = process.argv[2];
+if (!keyword) {
+  console.log('사용법: npm run delete-player -- "키워드"');
+  console.log('해당 키워드를 포함하는 모든 이름을 삭제합니다.');
   process.exit(1);
 }
 
@@ -14,19 +15,15 @@ if (!SSH_HOST || !SSH_PORT || !SSH_USER || !SSH_KEY_PATH) {
 }
 
 const ssh = `ssh -i ${SSH_KEY_PATH} -p ${SSH_PORT} ${SSH_USER}@${SSH_HOST}`;
-const nameB64 = Buffer.from(name).toString('base64');
+const keyB64 = Buffer.from(keyword).toString('base64');
 
 const nodeCmd = [
   "const Database = require('better-sqlite3');",
   "const db = new Database('/app/db/jjinmak.db');",
-  `const name = Buffer.from('${nameB64}', 'base64').toString();`,
-  "const row = db.prepare('SELECT * FROM players WHERE name = ?').get(name);",
-  "if (row) {",
-  "  db.prepare('DELETE FROM players WHERE name = ?').run(name);",
-  "  console.log('삭제 완료: ' + row.name + ' (' + row.play_count + '판)');",
-  "} else {",
-  "  console.log('해당 이름이 없습니다: ' + name);",
-  "}",
+  `const keyword = Buffer.from('${keyB64}', 'base64').toString();`,
+  "const rows = db.prepare(\"SELECT * FROM players WHERE name LIKE '%' || ? || '%'\").all(keyword);",
+  "if (rows.length === 0) { console.log('해당 키워드를 포함하는 이름이 없습니다: ' + keyword); }",
+  "else { rows.forEach(r => { db.prepare('DELETE FROM players WHERE id = ?').run(r.id); console.log('삭제: ' + r.name + ' (' + r.play_count + '판)'); }); console.log('총 ' + rows.length + '건 삭제 완료'); }",
   "db.close();",
 ].join(' ');
 
