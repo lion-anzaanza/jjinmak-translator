@@ -12,7 +12,36 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json());
 
-// 번역 API Rate Limit (IP당 1초 5회)
+// 요청 간격 분석 로깅 (매크로 감지 데이터 수집용)
+const requestHistory = new Map(); // IP → [timestamp, ...]
+
+function logRequestPattern(ip, name) {
+  const now = Date.now();
+  const history = requestHistory.get(ip) || [];
+  history.push(now);
+
+  // 최근 20건만 유지
+  if (history.length > 20) history.shift();
+  requestHistory.set(ip, history);
+
+  // 20건 미만이면 로깅 스킵
+  if (history.length < 20) return;
+
+  // 간격 계산
+  const intervals = [];
+  for (let i = 1; i < history.length; i++) {
+    intervals.push(history[i] - history[i - 1]);
+  }
+
+  const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+  const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
+  const stdev = Math.sqrt(variance);
+  const cv = (avg > 0 ? (stdev / avg) * 100 : 0).toFixed(1);
+
+  console.log(`[패턴] ${name} | 평균: ${avg.toFixed(0)}ms | 표준편차: ${stdev.toFixed(1)}ms | 변동계수: ${cv}% | IP: ${ip}`);
+}
+
+// 번역 API Rate Limit (IP당 초당 20회)
 const translateLimiter = rateLimit({
   windowMs: 1000,
   max: 20,
@@ -71,6 +100,12 @@ const bannedWords = loadJSON(path.join(__dirname, 'bannedWords.json'));
 
 // API: 속마음 번역하기
 app.post('/api/translate', translateLimiter, (req, res) => {
+  // 브라우저 헤더 검증 (스크립트/매크로 차단)
+  const origin = req.get('origin') || req.get('referer') || '';
+  if (!origin) {
+    return res.status(403).json({ error: '잘못된 접근입니다.' });
+  }
+
   const { name, skipRanking } = req.body;
 
   if (!name || !name.trim()) {
@@ -102,6 +137,9 @@ app.post('/api/translate', translateLimiter, (req, res) => {
       logNewPlayer(trimmedName);
     }
   }
+
+  // 요청 패턴 로깅
+  logRequestPattern(req.ip, trimmedName);
 
   res.json({ name: trimmedName, phrase, playCount, totalPhrases: phrases.length });
 });
