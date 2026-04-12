@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Nginx 프록시 뒤에서 실제 클라이언트 IP 사용
-app.set('trust proxy', true);
+app.set('trust proxy', 'loopback');
 
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
@@ -189,9 +189,14 @@ const bannedWords = loadJSON(path.join(__dirname, 'bannedWords.json'));
 
 // API: 속마음 번역하기
 app.post('/api/translate', translateLimiter, (req, res) => {
-  // 브라우저 헤더 검증 (스크립트/매크로 차단)
+  // 브라우저 헤더 검증 (허용 도메인 화이트리스트)
+  const ALLOWED_ORIGINS = [
+    'https://jjinmak.anzaanza.cloud',
+    'https://anzaanza.cloud',
+    'http://localhost:3000',
+  ];
   const origin = req.get('origin') || req.get('referer') || '';
-  if (!origin) {
+  if (!ALLOWED_ORIGINS.some(o => origin.startsWith(o))) {
     return res.status(403).json({ error: '잘못된 접근입니다.' });
   }
 
@@ -205,6 +210,10 @@ app.post('/api/translate', translateLimiter, (req, res) => {
 
   if (!/^[가-힣]+$/.test(trimmedName)) {
     return res.status(400).json({ error: '한글 이름만 입력할 수 있습니다.' });
+  }
+
+  if (trimmedName.length > 5) {
+    return res.status(400).json({ error: '이름은 5글자 이하만 가능하데이!' });
   }
 
   if (bannedWords.some(word => trimmedName.includes(word))) {
