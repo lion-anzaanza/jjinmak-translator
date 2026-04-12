@@ -15,14 +15,19 @@ app.set('trust proxy', true);
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json());
 
-// 매크로 감지 (변동계수 + 변동계수의 변동계수 분석)
+// 매크로 감지 (CV → 메타CV → 메타메타CV 3단계 분석)
 const requestHistory = new Map(); // IP → [timestamp, ...]
 const cvHistory = new Map(); // IP → [cv값, ...]
+const metaCVHistory = new Map(); // IP → [metaCV값, ...]
 const macroBlocked = new Map(); // IP → 차단 해제 시각
+const macroStrikes = new Map(); // IP → 누적 적발 횟수
+const bannedIPsPath = path.join(__dirname, 'bannedIPs.json');
+const macroBanned = new Set(loadJSON(bannedIPsPath)); // 영구 차단 IP 목록
 const SAMPLE_SIZE = 50;
 const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
 const META_CV_THRESHOLD = 2; // CV값의 변동계수 2% 미만이면 패턴 반복 매크로
-const META_SAMPLE_SIZE = 50; // CV값 50회 모아서 판단
+const META_META_CV_THRESHOLD = 2; // 메타CV의 변동계수 2% 미만이면 패턴 변경 매크로
+const META_SAMPLE_SIZE = 50; // CV/메타CV 표본 수
 const BLOCK_DURATION = 60 * 1000; // 1분 차단
 
 function calcCV(values) {
@@ -32,9 +37,12 @@ function calcCV(values) {
 }
 
 function detectMacro(ip, name) {
-  // 차단 중인지 확인
+  // 영구 차단 확인
+  if (macroBanned.has(ip)) return { blocked: true, message: '니는 내 웬수다!!! 절교데이!!!' };
+
+  // 일시 차단 중인지 확인
   const blockedUntil = macroBlocked.get(ip);
-  if (blockedUntil && Date.now() < blockedUntil) return true;
+  if (blockedUntil && Date.now() < blockedUntil) return { blocked: true, message: '매크로가 감지됐데이! 어찌 이럴 수가 있노! 니는 1분 동안 내 웬수다! 반성하고 오그레이!' };
   if (blockedUntil) macroBlocked.delete(ip);
 
   const now = Date.now();
@@ -61,29 +69,60 @@ function detectMacro(ip, name) {
 
   // 메타 CV (변동계수의 변동계수) 계산
   const metaCV = cvHist.length >= META_SAMPLE_SIZE ? calcCV(cvHist) : null;
+
+  // 메타메타 CV (메타CV의 변동계수) 계산
+  const metaCVHist = metaCVHistory.get(ip) || [];
+  if (metaCV !== null) {
+    metaCVHist.push(metaCV);
+    if (metaCVHist.length > META_SAMPLE_SIZE) metaCVHist.shift();
+    metaCVHistory.set(ip, metaCVHist);
+  }
+  const metaMetaCV = metaCVHist.length >= META_SAMPLE_SIZE ? calcCV(metaCVHist) : null;
+
   const metaCVStr = metaCV !== null ? metaCV.toFixed(1) + '%' : '-';
+  const metaMetaCVStr = metaMetaCV !== null ? metaMetaCV.toFixed(1) + '%' : '-';
 
-  console.log(`[패턴] ${name} | CV: ${cv.toFixed(1)}% | 메타CV: ${metaCVStr} | IP: ${ip}`);
+  console.log(`[패턴] ${name} | CV: ${cv.toFixed(1)}% | 메타CV: ${metaCVStr} | 메타메타CV: ${metaMetaCVStr} | IP: ${ip}`);
 
-  // 1차: 변동계수 3% 미만 → 균일 간격 매크로
+  // 매크로 판정
+  let isMacro = false;
+  let reason = '';
+
   if (cv < CV_THRESHOLD) {
-    macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
-    requestHistory.delete(ip);
-    cvHistory.delete(ip);
-    console.log(`[차단] ${name} | 균일 간격 매크로 | 1분 차단 | IP: ${ip}`);
-    return true;
+    isMacro = true;
+    reason = '균일 간격 매크로';
+  } else if (metaCV !== null && metaCV < META_CV_THRESHOLD) {
+    isMacro = true;
+    reason = `패턴 반복 매크로 (메타CV: ${metaCV.toFixed(1)}%)`;
+  } else if (metaMetaCV !== null && metaMetaCV < META_META_CV_THRESHOLD) {
+    isMacro = true;
+    reason = `패턴 변경 매크로 (메타메타CV: ${metaMetaCV.toFixed(1)}%)`;
   }
 
-  // 2차: 메타CV 5% 미만 → 패턴 반복 매크로 (CV가 높지만 일정하게 반복)
-  if (metaCV !== null && metaCV < META_CV_THRESHOLD) {
-    macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
+  if (isMacro) {
+    const strikes = (macroStrikes.get(ip) || 0) + 1;
+    macroStrikes.set(ip, strikes);
     requestHistory.delete(ip);
     cvHistory.delete(ip);
-    console.log(`[차단] ${name} | 패턴 반복 매크로 (메타CV: ${metaCV.toFixed(1)}%) | 1분 차단 | IP: ${ip}`);
-    return true;
+    metaCVHistory.delete(ip);
+
+    if (strikes >= 5) {
+      macroBanned.add(ip);
+      fs.writeFileSync(bannedIPsPath, JSON.stringify([...macroBanned], null, 2));
+      console.log(`[영구차단] ${name} | ${reason} | ${strikes}회 적발 | IP: ${ip}`);
+      return { blocked: true, message: '니는 내 웬수다!!! 절교데이!!!' };
+    } else if (strikes >= 3) {
+      macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
+      console.log(`[경고] ${name} | ${reason} | ${strikes}회 적발 | IP: ${ip}`);
+      return { blocked: true, message: '내는 경고했데이!! 웬수 되고 싶나!!!' };
+    } else {
+      macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
+      console.log(`[차단] ${name} | ${reason} | ${strikes}회 적발 | 1분 차단 | IP: ${ip}`);
+      return { blocked: true, message: '매크로가 감지됐데이! 어찌 이럴 수가 있노! 니는 1분 동안 내 웬수다! 반성하고 오그레이!' };
+    }
   }
 
-  return false;
+  return { blocked: false };
 }
 
 // 번역 API Rate Limit (IP당 초당 20회)
@@ -184,8 +223,9 @@ app.post('/api/translate', translateLimiter, (req, res) => {
   }
 
   // 매크로 감지
-  if (detectMacro(req.ip, trimmedName)) {
-    return res.status(429).json({ error: '매크로가 감지됐데이! 어찌 이럴 수가 있노! 니는 1분 동안 내 웬수다! 반성하고 오그레이!' });
+  const macro = detectMacro(req.ip, trimmedName);
+  if (macro.blocked) {
+    return res.status(429).json({ error: macro.message });
   }
 
   res.json({ name: trimmedName, phrase, playCount, totalPhrases: phrases.length });

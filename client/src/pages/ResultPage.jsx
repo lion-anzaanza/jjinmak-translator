@@ -185,6 +185,7 @@ export default function ResultPage() {
         <div className="flex justify-center gap-2 md:gap-4 flex-wrap">
           <button
             onClick={handleShare}
+            onKeyDown={(e) => e.repeat && e.preventDefault()}
             className="text-white rounded-full font-bold transition-colors w-[90px] md:w-[150px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[11px] md:text-[16px] hover:brightness-110"
             style={{ ...NEODGM, backgroundColor: '#9CB5FF' }}
           >
@@ -193,6 +194,7 @@ export default function ResultPage() {
           </button>
           <button
             onClick={handleRetry}
+            onKeyDown={(e) => e.repeat && e.preventDefault()}
             className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[100px] md:w-[180px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[12px] md:text-[18px]"
             style={{ ...NEODGM, fontWeight: 900, boxShadow: '0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3)' }}
           >
@@ -201,6 +203,7 @@ export default function ResultPage() {
           </button>
           <button
             onClick={() => navigate('/', { state: { resetSeen: true } })}
+            onKeyDown={(e) => e.repeat && e.preventDefault()}
             className="bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold transition-colors w-[90px] md:w-[150px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[11px] md:text-[16px]"
             style={NEODGM}
           >

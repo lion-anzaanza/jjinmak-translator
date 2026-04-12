@@ -91,7 +91,7 @@ export default function MainPage() {
             type="text"
             value={friendName}
             onChange={(e) => { const v = e.target.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, ''); if (v.length <= 5) setFriendName(v); }}
-            onKeyDown={(e) => e.key === 'Enter' && handleTranslate()}
+            onKeyDown={(e) => e.key === 'Enter' && !e.repeat && handleTranslate()}
             maxLength={5}
             placeholder="친구 이름이 뭐고?"
             className="w-full max-w-[320px] h-[48px] md:h-[56px] bg-[rgba(255,255,255,0.23)] border border-[#bfd1ff] rounded-[5px] px-[19px] text-white text-[18px] md:text-[22px] placeholder-[rgba(255,255,255,0.33)] focus:outline-none focus:border-[#9cb5ff]"
@@ -116,6 +116,7 @@ export default function MainPage() {
           {/* CTA 버튼 */}
           <button
             onClick={handleTranslate}
+            onKeyDown={(e) => e.repeat && e.preventDefault()}
             className="w-full max-w-[480px] h-[48px] md:h-[56px] bg-[#9cb5ff] hover:bg-[#b0c5ff] rounded-[100px] text-white text-[18px] md:text-[22px] transition-all hover:scale-[1.02]"
             style={{ fontFamily: "NeoDungGeunMo, monospace" }}
           >
