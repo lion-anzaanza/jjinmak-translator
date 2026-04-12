@@ -15,18 +15,28 @@ app.set('trust proxy', true);
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json());
 
-// 매크로 감지 (30건 기준 요청 간격 변동계수 분석)
+// 매크로 감지 (변동계수 + 변동계수의 변동계수 분석)
 const requestHistory = new Map(); // IP → [timestamp, ...]
+const cvHistory = new Map(); // IP → [cv값, ...]
 const macroBlocked = new Map(); // IP → 차단 해제 시각
 const SAMPLE_SIZE = 30;
 const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
+const META_CV_THRESHOLD = 5; // CV값의 변동계수 5% 미만이면 패턴 반복 매크로
+const META_SAMPLE_SIZE = 10; // CV값 10회 모아서 판단
 const BLOCK_DURATION = 60 * 1000; // 1분 차단
+
+function calcCV(values) {
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((sum, v) => sum + (v - avg) ** 2, 0) / values.length;
+  return avg > 0 ? (Math.sqrt(variance) / avg) * 100 : 0;
+}
 
 function detectMacro(ip, name) {
   // 차단 중인지 확인
   const blockedUntil = macroBlocked.get(ip);
   if (blockedUntil && Date.now() < blockedUntil) return true;
   if (blockedUntil) macroBlocked.delete(ip);
+
   const now = Date.now();
   const history = requestHistory.get(ip) || [];
   history.push(now);
@@ -36,24 +46,43 @@ function detectMacro(ip, name) {
 
   if (history.length < SAMPLE_SIZE) return false;
 
+  // 간격 변동계수 계산
   const intervals = [];
   for (let i = 1; i < history.length; i++) {
     intervals.push(history[i] - history[i - 1]);
   }
+  const cv = calcCV(intervals);
 
-  const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-  const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
-  const stdev = Math.sqrt(variance);
-  const cv = avg > 0 ? (stdev / avg) * 100 : 0;
+  // CV 히스토리 추적
+  const cvHist = cvHistory.get(ip) || [];
+  cvHist.push(cv);
+  if (cvHist.length > META_SAMPLE_SIZE) cvHist.shift();
+  cvHistory.set(ip, cvHist);
 
-  console.log(`[패턴] ${name} | 평균: ${avg.toFixed(0)}ms | 표준편차: ${stdev.toFixed(1)}ms | 변동계수: ${cv.toFixed(1)}% | IP: ${ip}`);
+  // 메타 CV (변동계수의 변동계수) 계산
+  const metaCV = cvHist.length >= META_SAMPLE_SIZE ? calcCV(cvHist) : null;
+  const metaCVStr = metaCV !== null ? metaCV.toFixed(1) + '%' : '-';
 
+  console.log(`[패턴] ${name} | CV: ${cv.toFixed(1)}% | 메타CV: ${metaCVStr} | IP: ${ip}`);
+
+  // 1차: 변동계수 3% 미만 → 균일 간격 매크로
   if (cv < CV_THRESHOLD) {
     macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
     requestHistory.delete(ip);
-    console.log(`[차단] ${name} | 1분 차단 | IP: ${ip}`);
+    cvHistory.delete(ip);
+    console.log(`[차단] ${name} | 균일 간격 매크로 | 1분 차단 | IP: ${ip}`);
     return true;
   }
+
+  // 2차: 메타CV 5% 미만 → 패턴 반복 매크로 (CV가 높지만 일정하게 반복)
+  if (metaCV !== null && metaCV < META_CV_THRESHOLD) {
+    macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
+    requestHistory.delete(ip);
+    cvHistory.delete(ip);
+    console.log(`[차단] ${name} | 패턴 반복 매크로 (메타CV: ${metaCV.toFixed(1)}%) | 1분 차단 | IP: ${ip}`);
+    return true;
+  }
+
   return false;
 }
 
