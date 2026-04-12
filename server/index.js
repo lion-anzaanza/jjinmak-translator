@@ -12,22 +12,27 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json());
 
-// 요청 간격 분석 로깅 (매크로 감지 데이터 수집용)
+// 매크로 감지 (30건 기준 요청 간격 변동계수 분석)
 const requestHistory = new Map(); // IP → [timestamp, ...]
+const macroBlocked = new Map(); // IP → 차단 해제 시각
+const SAMPLE_SIZE = 30;
+const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
+const BLOCK_DURATION = 60 * 1000; // 1분 차단
 
-function logRequestPattern(ip, name) {
+function detectMacro(ip, name) {
+  // 차단 중인지 확인
+  const blockedUntil = macroBlocked.get(ip);
+  if (blockedUntil && Date.now() < blockedUntil) return true;
+  if (blockedUntil) macroBlocked.delete(ip);
   const now = Date.now();
   const history = requestHistory.get(ip) || [];
   history.push(now);
 
-  // 최근 20건만 유지
-  if (history.length > 20) history.shift();
+  if (history.length > SAMPLE_SIZE) history.shift();
   requestHistory.set(ip, history);
 
-  // 20건 미만이면 로깅 스킵
-  if (history.length < 20) return;
+  if (history.length < SAMPLE_SIZE) return false;
 
-  // 간격 계산
   const intervals = [];
   for (let i = 1; i < history.length; i++) {
     intervals.push(history[i] - history[i - 1]);
@@ -36,9 +41,17 @@ function logRequestPattern(ip, name) {
   const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
   const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
   const stdev = Math.sqrt(variance);
-  const cv = (avg > 0 ? (stdev / avg) * 100 : 0).toFixed(1);
+  const cv = avg > 0 ? (stdev / avg) * 100 : 0;
 
-  console.log(`[패턴] ${name} | 평균: ${avg.toFixed(0)}ms | 표준편차: ${stdev.toFixed(1)}ms | 변동계수: ${cv}% | IP: ${ip}`);
+  console.log(`[패턴] ${name} | 평균: ${avg.toFixed(0)}ms | 표준편차: ${stdev.toFixed(1)}ms | 변동계수: ${cv.toFixed(1)}% | IP: ${ip}`);
+
+  if (cv < CV_THRESHOLD) {
+    macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
+    requestHistory.delete(ip);
+    console.log(`[차단] ${name} | 1분 차단 | IP: ${ip}`);
+    return true;
+  }
+  return false;
 }
 
 // 번역 API Rate Limit (IP당 초당 20회)
@@ -138,8 +151,10 @@ app.post('/api/translate', translateLimiter, (req, res) => {
     }
   }
 
-  // 요청 패턴 로깅
-  logRequestPattern(req.ip, trimmedName);
+  // 매크로 감지
+  if (detectMacro(req.ip, trimmedName)) {
+    return res.status(429).json({ error: '매크로가 감지됐데이! 어찌 이럴 수가 있노! 니는 1분 동안 내 웬수다! 반성하고 오그레이!' });
+  }
 
   res.json({ name: trimmedName, phrase, playCount, totalPhrases: phrases.length });
 });
