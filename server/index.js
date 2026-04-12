@@ -22,7 +22,11 @@ const metaCVHistory = new Map(); // IP → [metaCV값, ...]
 const macroBlocked = new Map(); // IP → 차단 해제 시각
 const macroStrikes = new Map(); // IP → 누적 적발 횟수
 const bannedIPsPath = path.join(__dirname, 'bannedIPs.json');
-const macroBanned = new Set(loadJSON(bannedIPsPath)); // 영구 차단 IP 목록
+const bannedIPsData = loadJSON(bannedIPsPath);
+// 하위 호환: 배열이 문자열이면 Set, 객체면 Map
+const macroBanned = new Map(
+  bannedIPsData.map(entry => typeof entry === 'string' ? [entry, '(알 수 없음)'] : [entry.ip, entry.name])
+);
 const SAMPLE_SIZE = 50;
 const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
 const META_CV_THRESHOLD = 2; // CV값의 변동계수 2% 미만이면 패턴 반복 매크로
@@ -107,8 +111,9 @@ function detectMacro(ip, name) {
     metaCVHistory.delete(ip);
 
     if (strikes >= 5) {
-      macroBanned.add(ip);
-      fs.writeFileSync(bannedIPsPath, JSON.stringify([...macroBanned], null, 2));
+      macroBanned.set(ip, name);
+      const bannedList = [...macroBanned].map(([ip, name]) => ({ ip, name }));
+      fs.promises.writeFile(bannedIPsPath, JSON.stringify(bannedList, null, 2)).catch(e => console.error('bannedIPs 저장 실패:', e.message));
       console.log(`[영구차단] ${name} | ${reason} | ${strikes}회 적발 | IP: ${ip}`);
       return { blocked: true, message: '니는 내 웬수다!!! 절교데이!!!' };
     } else if (strikes >= 3) {
@@ -257,6 +262,26 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(publicPath, 'index.html'));
   });
 }
+
+// 1시간마다 매크로 감지 메모리 정리
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, until] of macroBlocked) {
+    if (now >= until) macroBlocked.delete(ip);
+  }
+  for (const ip of macroStrikes.keys()) {
+    if (macroBanned.has(ip)) macroStrikes.delete(ip);
+  }
+  // 1시간 이상 요청 없는 IP의 히스토리 정리
+  for (const ip of requestHistory.keys()) {
+    const hist = requestHistory.get(ip);
+    if (hist.length > 0 && now - hist[hist.length - 1] > 3600000) {
+      requestHistory.delete(ip);
+      cvHistory.delete(ip);
+      metaCVHistory.delete(ip);
+    }
+  }
+}, 3600000);
 
 // 매주 월요일 KST 00:00 랭킹 초기화
 function resetRanking() {

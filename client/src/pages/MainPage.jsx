@@ -9,6 +9,7 @@ export default function MainPage() {
   const [friendName, setFriendName] = useState('');
   const [dontRecord, setDontRecord] = useState(false);
   const [rankings, setRankings] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [searched, setSearched] = useState(false);
@@ -47,11 +48,13 @@ export default function MainPage() {
   }, [searchQuery]);
 
   const handleTranslate = async () => {
+    if (isLoading) return;
     if (!friendName.trim()) {
       alert('친구 이름을 입력해주세요!');
       return;
     }
 
+    setIsLoading(true);
     try {
       const res = await fetch('/api/translate', {
         method: 'POST',
@@ -61,11 +64,13 @@ export default function MainPage() {
       const data = await res.json();
       if (!res.ok) {
         alert(data.error || '오류가 발생했습니다.');
+        setIsLoading(false);
         return;
       }
       navigate('/result', { state: { ...data, playCount: 1, skipRanking: dontRecord } });
     } catch {
       alert('네트워크 오류가 발생했습니다.');
+      setIsLoading(false);
     }
   };
 
@@ -116,7 +121,7 @@ export default function MainPage() {
           {/* CTA 버튼 */}
           <button
             onClick={handleTranslate}
-            onKeyDown={(e) => e.repeat && e.preventDefault()}
+            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
             className="w-full max-w-[480px] h-[48px] md:h-[56px] bg-[#9cb5ff] hover:bg-[#b0c5ff] rounded-[100px] text-white text-[18px] md:text-[22px] transition-all hover:scale-[1.02]"
             style={{ fontFamily: "NeoDungGeunMo, monospace" }}
           >

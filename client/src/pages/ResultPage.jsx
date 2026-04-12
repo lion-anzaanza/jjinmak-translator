@@ -18,6 +18,11 @@ function fromBase64(str) {
 
 const NEODGM = { fontFamily: 'NeoDungGeunMo, monospace' };
 
+const SLOT_MESSAGES = [
+  '두근두근...', '읽는 중...', '해석 중...', '거의 다 됐어...',
+  '음...', '잠깐만...', '뭐라고?', '헉...',
+];
+
 export default function ResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,11 +55,7 @@ export default function ResultPage() {
   const [playCount, setPlayCount] = useState(initialPlayCount || 1);
   const [displayedMessage, setDisplayedMessage] = useState('');
   const [isSlotting, setIsSlotting] = useState(!shared);
-
-  const slotMessages = [
-    '두근두근...', '읽는 중...', '해석 중...', '거의 다 됐어...',
-    '음...', '잠깐만...', '뭐라고?', '헉...',
-  ];
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!phrase) return;
@@ -66,7 +67,7 @@ export default function ResultPage() {
 
     let count = 0;
     const interval = setInterval(() => {
-      setDisplayedMessage(slotMessages[count % slotMessages.length]);
+      setDisplayedMessage(SLOT_MESSAGES[count % SLOT_MESSAGES.length]);
       count++;
     }, 150);
 
@@ -88,6 +89,8 @@ export default function ResultPage() {
   }
 
   const handleRetry = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       const res = await fetch('/api/translate', {
         method: 'POST',
@@ -97,18 +100,21 @@ export default function ResultPage() {
       const data = await res.json();
       if (!res.ok) {
         alert(data.error || '오류가 발생했습니다.');
+        setIsLoading(false);
         return;
       }
 
       localCount.current += 1;
       setPlayCount(localCount.current);
       setIsSlotting(true);
+      setIsLoading(false);
       navigate('/result', {
         state: { ...data, playCount: localCount.current, skipRanking, seenPhrases },
         replace: true,
       });
     } catch {
       alert('네트워크 오류가 발생했습니다.');
+      setIsLoading(false);
     }
   };
 
@@ -185,7 +191,7 @@ export default function ResultPage() {
         <div className="flex justify-center gap-2 md:gap-4 flex-wrap">
           <button
             onClick={handleShare}
-            onKeyDown={(e) => e.repeat && e.preventDefault()}
+            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
             className="text-white rounded-full font-bold transition-colors w-[90px] md:w-[150px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[11px] md:text-[16px] hover:brightness-110"
             style={{ ...NEODGM, backgroundColor: '#9CB5FF' }}
           >
@@ -194,7 +200,7 @@ export default function ResultPage() {
           </button>
           <button
             onClick={handleRetry}
-            onKeyDown={(e) => e.repeat && e.preventDefault()}
+            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
             className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[100px] md:w-[180px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[12px] md:text-[18px]"
             style={{ ...NEODGM, fontWeight: 900, boxShadow: '0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3)' }}
           >
@@ -203,7 +209,7 @@ export default function ResultPage() {
           </button>
           <button
             onClick={() => navigate('/', { state: { resetSeen: true } })}
-            onKeyDown={(e) => e.repeat && e.preventDefault()}
+            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
             className="bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold transition-colors w-[90px] md:w-[150px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[11px] md:text-[16px]"
             style={NEODGM}
           >

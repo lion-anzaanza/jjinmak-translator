@@ -9,28 +9,28 @@
  * 플레이횟수: #ff9cee, text-shadow 4px 0 10px #e0f
  */
 
+const KABLAMMO_BASE = { fontFamily: 'Kablammo, sans-serif', fontVariationSettings: "'MORF' 40" };
+
 const RANK_STYLES = [
   {
     trophy: '/images/medal-gold.svg',
-    numShadow: '5px 0px 10px #ffdd00',
-    nameWeight: 600,
-    nameShadow: '0px 0px 12px rgba(255, 215, 0, 0.8)',
+    numStyle: { ...KABLAMMO_BASE, textShadow: '5px 0px 10px #ffdd00' },
+    nameStyle: { fontWeight: 600, textShadow: '0px 0px 12px rgba(255, 215, 0, 0.8)' },
   },
   {
     trophy: '/images/medal-silver.svg',
-    numShadow: '5px 0px 10px white',
-    nameWeight: 400,
-    nameShadow: '5px 0px 10px white',
+    numStyle: { ...KABLAMMO_BASE, textShadow: '5px 0px 10px white' },
+    nameStyle: { fontWeight: 400, textShadow: '5px 0px 10px white' },
   },
   {
     trophy: '/images/medal-bronze.svg',
-    numShadow: '5px 0px 10px #b25c00',
-    nameWeight: 400,
-    nameShadow: '5px 0px 10px #df6c00',
+    numStyle: { ...KABLAMMO_BASE, textShadow: '5px 0px 10px #b25c00' },
+    nameStyle: { fontWeight: 400, textShadow: '5px 0px 10px #df6c00' },
   },
 ];
 
-const KABLAMMO = { fontFamily: 'Kablammo, sans-serif', fontVariationSettings: "'MORF' 40" };
+const DEFAULT_NUM_STYLE = { ...KABLAMMO_BASE, textShadow: 'none' };
+const DEFAULT_NAME_STYLE = { fontWeight: 400, textShadow: 'none' };
 const INTER = { fontFamily: "Inter, 'Noto Sans KR', sans-serif" };
 
 // 1~3위 플레이 횟수에 비례한 폰트 크기 계산 (모바일/데스크탑)
@@ -55,7 +55,7 @@ export function RankingList({ rankings }) {
         const scaled = getScaledSize(rankings, i);
 
         return (
-          <div key={i} className="flex items-center gap-[10px] h-[36px]">
+          <div key={player.name} className="flex items-center gap-[10px] h-[36px]">
             {/* 트로피 (1~3위만) */}
             {hasTrophy ? (
               <img src={style.trophy} alt="" className="w-[22px] md:w-[28px] h-[28px] md:h-[36px] object-contain shrink-0" />
@@ -66,10 +66,7 @@ export function RankingList({ rankings }) {
             {/* 순위 번호 — 모두 Kablammo 폰트 */}
             <span
               className="text-[18px] md:text-[24px] text-white text-center w-[30px] md:w-[40px] shrink-0"
-              style={{
-                ...KABLAMMO,
-                textShadow: style?.numShadow || 'none',
-              }}
+              style={style?.numStyle || DEFAULT_NUM_STYLE}
             >
               {i + 1}
             </span>
@@ -77,11 +74,10 @@ export function RankingList({ rankings }) {
             {/* 이름 */}
             <span
               className={`${scaled ? '' : 'text-[18px] md:text-[24px]'} text-white w-[90px] md:w-[120px] shrink-0 whitespace-nowrap`}
-              style={{
-                fontWeight: style?.nameWeight || 400,
-                textShadow: style?.nameShadow || 'none',
-                ...(scaled ? { fontSize: `clamp(${scaled.mobile}px, 3vw, ${scaled.desktop}px)` } : {}),
-              }}
+              style={scaled
+                ? { ...(style?.nameStyle || DEFAULT_NAME_STYLE), fontSize: `clamp(${scaled.mobile}px, 3vw, ${scaled.desktop}px)` }
+                : (style?.nameStyle || DEFAULT_NAME_STYLE)
+              }
             >
               {player.name}
             </span>

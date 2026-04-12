@@ -37,8 +37,8 @@ cd server
 # 서버 DB 전체 초기화
 npm run reset-db
 
-# 특정 이름 삭제
-npm run delete-player -- "이름"
+# 특정 키워드 포함 이름 삭제
+npm run delete-player -- "키워드"
 ```
 
 SSH 접속 정보는 `server/.env`에서 관리 (gitignored).
@@ -50,33 +50,47 @@ SSH 접속 정보는 `server/.env`에서 관리 (gitignored).
 - `client/src/components/RankingList.jsx` — 랭킹 컴포넌트 (메달 SVG, 순위별 글로우, 동적 폰트 크기)
 - `client/src/App.css` — 마블 배경, 스크롤바 숨김
 - `client/src/fonts.css` — Gaegu, Kablammo, NeoDungGeunMo 폰트
-- `server/index.js` — Express 서버, API, Rate Limit, 랭킹 초기화, 금지어 필터, 로깅
-- `server/phrases.json` — 속마음 문구 목록
+- `server/index.js` — Express 서버, API, Rate Limit, 매크로 감지, 랭킹 초기화, 금지어 필터, 로깅
+- `server/phrases.json` — 속마음 문구 목록 (150개)
 - `server/bannedWords.json` — 이름 금지어 목록
-- `server/delete-player.js` — 원격 DB 이름 삭제 스크립트
+- `server/bannedIPs.json` — 매크로 영구 차단 IP 목록
+- `server/delete-player.js` — 원격 DB 키워드 포함 이름 삭제 스크립트
 - `server/reset-db.js` — 원격 DB 초기화 스크립트
 
 ## API
 
-- `POST /api/translate` — 번역 실행 (Rate Limit: 초당 20회, 한글 완성형만, 금지어 필터)
+- `POST /api/translate` — 번역 실행 (Rate Limit: 초당 20회, 한글 완성형만, 금지어 필터, 브라우저 헤더 검증, 매크로 감지)
 - `GET /api/ranking` — 랭킹 조회 (TOP 20)
 - `GET /api/search?name=` — 이름 검색 (순위 + 플레이 횟수)
+
+## Anti-Macro System
+
+3단계 매크로 감지 (요청 간격 변동계수 분석):
+1. **CV**: 간격 변동계수 3% 미만 → 균일 간격 매크로
+2. **메타CV**: CV값의 변동계수 2% 미만 → 패턴 반복 매크로
+3. **메타메타CV**: 메타CV값의 변동계수 2% 미만 → 패턴 변경 매크로
+
+- 표본 크기: 50건
+- 누적 스트라이크: 3회 경고, 5회 영구 차단 (`bannedIPs.json`)
+- 브라우저 헤더 검증 (Origin/Referer 없으면 403)
 
 ## Deployment
 
 - **브랜치**: `release` push 시 GitHub Actions 자동 배포
-- **구조**: Nginx(:443 SSL) → Docker(:5000 Express)
+- **구조**: Nginx(:443 SSL) → Docker(:5000 Express), `trust proxy` 활성화
 - **DB 영속**: `~/jjinmak-data:/app/db` 볼륨 마운트
 - **로그**: `~/jjinmak-data/logs/YYYY-MM-DD.json` (일자별 신규 플레이어)
 - **SSL**: Let's Encrypt 자동 갱신 (certbot)
+- **도메인**: `anzaanza.cloud` (루트) + `jjinmak.anzaanza.cloud` (서브도메인)
 
 ## Key Design Decisions
 
 - 이름: 한글 완성형만 허용, 최대 5글자
 - 판수(playCount): 세션 기준 1부터 시작 (랭킹과 무관)
 - 슬롯머신: 0.7초 duration, 150ms interval
-- 랭킹: 매주 월요일 KST 00:00 자동 초기화
+- 랭킹: 매주 월요일 KST 00:00 자동 초기화, TOP 20 스크롤 조회
 - 모바일 반응형: md(768px) 브레이크포인트 기준
+- 문구 전체 수집 시 축하 메시지 표시
 
 ## Documentation
 
