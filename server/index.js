@@ -31,7 +31,8 @@ const SAMPLE_SIZE = 50;
 const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
 const META_CV_THRESHOLD = 2; // CV값의 변동계수 2% 미만이면 패턴 반복 매크로
 const META_META_CV_THRESHOLD = 2; // 메타CV의 변동계수 2% 미만이면 패턴 변경 매크로
-const META_SAMPLE_SIZE = 50; // CV/메타CV 표본 수
+const META_SAMPLE_SIZE = 50; // 메타CV 표본 수
+const META_META_SAMPLE_SIZE = 20; // 메타메타CV 표본 수
 const BLOCK_DURATION = 60 * 1000; // 1분 차단
 
 function calcCV(values) {
@@ -78,10 +79,10 @@ function detectMacro(ip, name) {
   const metaCVHist = metaCVHistory.get(ip) || [];
   if (metaCV !== null) {
     metaCVHist.push(metaCV);
-    if (metaCVHist.length > META_SAMPLE_SIZE) metaCVHist.shift();
+    if (metaCVHist.length > META_META_SAMPLE_SIZE) metaCVHist.shift();
     metaCVHistory.set(ip, metaCVHist);
   }
-  const metaMetaCV = metaCVHist.length >= META_SAMPLE_SIZE ? calcCV(metaCVHist) : null;
+  const metaMetaCV = metaCVHist.length >= META_META_SAMPLE_SIZE ? calcCV(metaCVHist) : null;
 
   const metaCVStr = metaCV !== null ? metaCV.toFixed(1) + '%' : '-';
   const metaMetaCVStr = metaMetaCV !== null ? metaMetaCV.toFixed(1) + '%' : '-';
