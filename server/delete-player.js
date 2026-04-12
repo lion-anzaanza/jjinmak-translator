@@ -17,18 +17,30 @@ if (!SSH_HOST || !SSH_PORT || !SSH_USER || !SSH_KEY_PATH) {
 const ssh = `ssh -i ${SSH_KEY_PATH} -p ${SSH_PORT} ${SSH_USER}@${SSH_HOST}`;
 const keyB64 = Buffer.from(keyword).toString('base64');
 
-const nodeCmd = [
-  "const Database = require('better-sqlite3');",
-  "const db = new Database('/app/db/jjinmak.db');",
-  `const keyword = Buffer.from('${keyB64}', 'base64').toString();`,
-  "const rows = db.prepare(\"SELECT * FROM players WHERE name LIKE '%' || ? || '%'\").all(keyword);",
-  "if (rows.length === 0) { console.log('해당 키워드를 포함하는 이름이 없습니다: ' + keyword); }",
-  "else { rows.forEach(r => { db.prepare('DELETE FROM players WHERE id = ?').run(r.id); console.log('삭제: ' + r.name + ' (' + r.play_count + '판)'); }); console.log('총 ' + rows.length + '건 삭제 완료'); }",
-  "db.close();",
-].join(' ');
+const script = `
+const Database = require('better-sqlite3');
+const db = new Database('/app/db/jjinmak.db');
+const keyword = Buffer.from('${keyB64}', 'base64').toString();
+const rows = db.prepare("SELECT * FROM players WHERE name LIKE '%' || ? || '%'").all(keyword);
+if (rows.length === 0) {
+  console.log('해당 키워드를 포함하는 이름이 없습니다: ' + keyword);
+} else {
+  rows.forEach(r => {
+    db.prepare('DELETE FROM players WHERE id = ?').run(r.id);
+    console.log('삭제: ' + r.name + ' (' + r.play_count + '판)');
+  });
+  console.log('총 ' + rows.length + '건 삭제 완료');
+}
+db.close();
+`.trim();
+
+const scriptB64 = Buffer.from(script).toString('base64');
 
 try {
-  const result = execSync(`${ssh} "docker exec jjinmak node -e \\"${nodeCmd}\\""`, { encoding: 'utf-8' });
+  const result = execSync(
+    `${ssh} "docker exec jjinmak node -e \\"eval(Buffer.from('${scriptB64}','base64').toString())\\""`,
+    { encoding: 'utf-8' }
+  );
   console.log(result.trim());
 } catch (e) {
   console.error(e.stderr || e.message);
