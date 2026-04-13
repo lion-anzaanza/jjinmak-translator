@@ -95,20 +95,15 @@ function detectMacro(ip, name) {
   let isMacro = false;
   let reason = '';
 
-  // 전과자는 기준 강화 (2% → 5%)
-  const strikes = macroStrikes.get(ip) || 0;
-  const metaThreshold = strikes > 0 ? 5 : META_CV_THRESHOLD;
-  const metaMetaThreshold = strikes > 0 ? 5 : META_META_CV_THRESHOLD;
-
   if (cv < CV_THRESHOLD) {
     isMacro = true;
     reason = '균일 간격 매크로';
-  } else if (metaCV !== null && metaCV < metaThreshold) {
+  } else if (metaCV !== null && metaCV < META_CV_THRESHOLD) {
     isMacro = true;
-    reason = `패턴 반복 매크로 (메타CV: ${metaCV.toFixed(1)}%, 기준: ${metaThreshold}%)`;
-  } else if (metaMetaCV !== null && metaMetaCV < metaMetaThreshold) {
+    reason = `패턴 반복 매크로 (메타CV: ${metaCV.toFixed(1)}%)`;
+  } else if (metaMetaCV !== null && metaMetaCV < META_META_CV_THRESHOLD) {
     isMacro = true;
-    reason = `패턴 변경 매크로 (메타메타CV: ${metaMetaCV.toFixed(1)}%, 기준: ${metaMetaThreshold}%)`;
+    reason = `패턴 변경 매크로 (메타메타CV: ${metaMetaCV.toFixed(1)}%)`;
   }
 
   if (isMacro) {
