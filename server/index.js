@@ -36,6 +36,9 @@ const META_META_SAMPLE_SIZE = 50; // 메타메타CV 표본 수
 const BLOCK_DURATION = 60 * 1000; // 1분 차단
 const VPN_SUBNET_THRESHOLD = 8; // 같은 이름에 고유 대역 8개 이상이면 VPN 매크로
 const nameSubnets = new Map(); // 이름 → Set(IP 대역)
+const CONSECUTIVE_THRESHOLD = 3; // 연속 N번 기준 미만이면 차단
+const metaCVConsecutive = new Map(); // IP → 연속 메타CV 기준 미만 횟수
+const metaMetaCVConsecutive = new Map(); // IP → 연속 메타메타CV 기준 미만 횟수
 
 function calcCV(values) {
   const avg = values.reduce((a, b) => a + b, 0) / values.length;
@@ -98,12 +101,24 @@ function detectMacro(ip, name) {
   if (cv < CV_THRESHOLD) {
     isMacro = true;
     reason = '균일 간격 매크로';
-  } else if (metaCV !== null && metaCV < META_CV_THRESHOLD) {
-    isMacro = true;
-    reason = `패턴 반복 매크로 (메타CV: ${metaCV.toFixed(1)}%)`;
-  } else if (metaMetaCV !== null && metaMetaCV < META_META_CV_THRESHOLD) {
-    isMacro = true;
-    reason = `패턴 변경 매크로 (메타메타CV: ${metaMetaCV.toFixed(1)}%)`;
+  } else if (metaCV !== null) {
+    // 메타CV 연속 체크
+    const metaConsec = metaCV < META_CV_THRESHOLD ? (metaCVConsecutive.get(ip) || 0) + 1 : 0;
+    metaCVConsecutive.set(ip, metaConsec);
+    if (metaConsec >= CONSECUTIVE_THRESHOLD) {
+      isMacro = true;
+      reason = `패턴 반복 매크로 (메타CV: ${metaCV.toFixed(1)}%, ${metaConsec}연속)`;
+    }
+  }
+
+  if (!isMacro && metaMetaCV !== null) {
+    // 메타메타CV 연속 체크
+    const metaMetaConsec = metaMetaCV < META_META_CV_THRESHOLD ? (metaMetaCVConsecutive.get(ip) || 0) + 1 : 0;
+    metaMetaCVConsecutive.set(ip, metaMetaConsec);
+    if (metaMetaConsec >= CONSECUTIVE_THRESHOLD) {
+      isMacro = true;
+      reason = `패턴 변경 매크로 (메타메타CV: ${metaMetaCV.toFixed(1)}%, ${metaMetaConsec}연속)`;
+    }
   }
 
   if (isMacro) {
@@ -112,6 +127,8 @@ function detectMacro(ip, name) {
     requestHistory.delete(ip);
     cvHistory.delete(ip);
     metaCVHistory.delete(ip);
+    metaCVConsecutive.delete(ip);
+    metaMetaCVConsecutive.delete(ip);
 
     if (strikes >= 5) {
       macroBanned.set(ip, name);
