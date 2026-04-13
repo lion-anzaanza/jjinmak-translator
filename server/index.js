@@ -282,7 +282,11 @@ app.post('/api/translate', translateLimiter, (req, res) => {
 // API: 랭킹 조회 (TOP 6)
 app.get('/api/ranking', (req, res) => {
   const rows = db.prepare('SELECT name, play_count FROM players ORDER BY play_count DESC LIMIT 20').all();
-  res.json({ ranking: rows });
+  const currentTotal = db.prepare('SELECT COALESCE(SUM(play_count), 0) as total FROM players').get().total;
+  const cumulative = getCumulative();
+  const totalPlays = cumulative.totalPlays + currentTotal;
+  const totalMinutes = Math.floor(totalPlays / 20);
+  res.json({ ranking: rows, totalPlays, totalMinutes });
 });
 
 // API: 이름 검색 (순위 + 플레이 횟수)
@@ -328,8 +332,28 @@ setInterval(() => {
   nameSubnets.clear();
 }, 3600000);
 
+// 누적 플레이 횟수 관리
+const cumulativePath = path.join(__dirname, 'db', 'cumulative.json');
+function getCumulative() {
+  try {
+    return JSON.parse(fs.readFileSync(cumulativePath, 'utf-8'));
+  } catch {
+    return { totalPlays: 0 };
+  }
+}
+function saveCumulative(data) {
+  fs.writeFileSync(cumulativePath, JSON.stringify(data, null, 2));
+}
+
 // 매주 월요일 KST 00:00 랭킹 초기화
 function resetRanking() {
+  // 초기화 전 현재 총량을 누적에 더함
+  const currentTotal = db.prepare('SELECT COALESCE(SUM(play_count), 0) as total FROM players').get().total;
+  const cumulative = getCumulative();
+  cumulative.totalPlays += currentTotal;
+  saveCumulative(cumulative);
+  console.log(`[${new Date().toISOString()}] 누적 저장: ${cumulative.totalPlays} (이번 주: +${currentTotal})`);
+
   db.exec('DELETE FROM players');
   console.log(`[${new Date().toISOString()}] 랭킹 초기화 완료`);
 }
