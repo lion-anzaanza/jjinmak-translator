@@ -16,6 +16,8 @@ export default function MainPage() {
 
   useEffect(() => {
     fetchRanking();
+    const interval = setInterval(fetchRanking, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchRanking = async () => {
