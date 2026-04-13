@@ -285,7 +285,7 @@ app.get('/api/ranking', (req, res) => {
   const currentTotal = db.prepare('SELECT COALESCE(SUM(play_count), 0) as total FROM players').get().total;
   const cumulative = getCumulative();
   const totalPlays = cumulative.totalPlays + currentTotal;
-  const totalMinutes = Math.floor(totalPlays / 20);
+  const totalMinutes = Math.floor(totalPlays / 180);
   res.json({ ranking: rows, totalPlays, totalMinutes });
 });
 
