@@ -10,6 +10,7 @@ export default function MainPage() {
   const [dontRecord, setDontRecord] = useState(false);
   const [rankings, setRankings] = useState([]);
   const [totalMinutes, setTotalMinutes] = useState(0);
+  const [totalPlays, setTotalPlays] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
@@ -27,6 +28,7 @@ export default function MainPage() {
       const data = await res.json();
       setRankings(data.ranking);
       if (data.totalMinutes !== undefined) setTotalMinutes(data.totalMinutes);
+      if (data.totalPlays !== undefined) setTotalPlays(data.totalPlays);
     } catch {
       console.error('랭킹 조회 실패');
     }
@@ -190,10 +192,11 @@ export default function MainPage() {
           <RankingNotice />
         </div>
 
-        {/* 딴짓에 쏟은 시간 — 왼쪽 하단 */}
-        <p className="absolute bottom-[14px] left-[20px] text-[10px] text-[rgba(255,255,255,0.25)]">
-          딴짓에 쏟은 시간: {totalMinutes >= 60 ? `${Math.floor(totalMinutes / 60)}시간 ${totalMinutes % 60}분` : `${totalMinutes}분`}
-        </p>
+        {/* 딴짓 통계 — 왼쪽 하단 */}
+        <div className="absolute bottom-[10px] left-[20px] text-[10px] text-[rgba(255,255,255,0.25)]">
+          <p>총 딴짓 횟수: {totalPlays.toLocaleString()}번</p>
+          <p>딴짓에 쏟은 시간: {totalMinutes >= 60 ? `${Math.floor(totalMinutes / 60)}시간 ${totalMinutes % 60}분` : `${totalMinutes}분`}</p>
+        </div>
 
         {/* 이스터에그 — 오른쪽 하단 */}
         <p
