@@ -33,17 +33,21 @@ const DEFAULT_NUM_STYLE = { ...KABLAMMO_BASE, textShadow: 'none' };
 const DEFAULT_NAME_STYLE = { fontWeight: 400, textShadow: 'none' };
 const INTER = { fontFamily: "Inter, 'Noto Sans KR', sans-serif" };
 
-// 1~3위 플레이 횟수에 비례한 폰트 크기 계산 (모바일/데스크탑)
+// 1~3위 폰트 크기 계산
+// - 1등: 이름이 컨테이너(모바일 90px / 데스크탑 120px)에 딱 맞는 최대 크기
+// - 2·3등: 1등 크기 × (본인 플레이수 / 1등 플레이수)
 function getScaledSize(rankings, index) {
-  if (index >= 3) return null; // 4위 이하는 기본 크기
-  const top3 = rankings.slice(0, 3).map(r => r.play_count);
-  const max = top3[0] || 1;
-  const min = top3[top3.length - 1] || 1;
-  const range = max - min || 1;
-  const ratio = (rankings[index].play_count - min) / range; // 0~1
-  const mobilePx = 18 + ratio * 10;  // 18~28px
-  const desktopPx = 24 + ratio * 14; // 24~38px
-  return { mobile: Math.round(mobilePx), desktop: Math.round(desktopPx) };
+  if (index >= 3) return null;
+  const top3 = rankings.slice(0, 3);
+  const maxPlayCount = top3[0]?.play_count || 1;
+  const firstName = top3[0]?.name || 'x';
+  const mobileBase = Math.floor(90 / firstName.length);
+  const desktopBase = Math.floor(120 / firstName.length);
+  const ratio = (top3[index]?.play_count || 0) / maxPlayCount;
+  return {
+    mobile: Math.max(14, Math.round(mobileBase * ratio)),
+    desktop: Math.max(18, Math.round(desktopBase * ratio)),
+  };
 }
 
 export function RankingList({ rankings }) {
@@ -73,7 +77,7 @@ export function RankingList({ rankings }) {
 
             {/* 이름 */}
             <span
-              className={`${scaled ? '' : 'text-[18px] md:text-[24px]'} text-white w-[90px] md:w-[120px] shrink-0 whitespace-nowrap overflow-hidden`}
+              className="text-white w-[90px] md:w-[120px] shrink-0 whitespace-nowrap overflow-hidden"
               style={scaled
                 ? { ...(style?.nameStyle || DEFAULT_NAME_STYLE), fontSize: `clamp(${scaled.mobile}px, 3vw, ${scaled.desktop}px)` }
                 : (style?.nameStyle || DEFAULT_NAME_STYLE)
