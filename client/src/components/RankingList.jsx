@@ -73,7 +73,7 @@ export function RankingList({ rankings }) {
 
             {/* 이름 */}
             <span
-              className={`${scaled ? '' : 'text-[18px] md:text-[24px]'} text-white w-[90px] md:w-[120px] shrink-0 whitespace-nowrap`}
+              className={`${scaled ? '' : 'text-[18px] md:text-[24px]'} text-white w-[90px] md:w-[120px] shrink-0 whitespace-nowrap overflow-hidden`}
               style={scaled
                 ? { ...(style?.nameStyle || DEFAULT_NAME_STYLE), fontSize: `clamp(${scaled.mobile}px, 3vw, ${scaled.desktop}px)` }
                 : (style?.nameStyle || DEFAULT_NAME_STYLE)

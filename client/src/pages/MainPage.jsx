@@ -186,7 +186,7 @@ export default function MainPage() {
           )}
 
           {/* 랭킹 리스트 — 6위까지, 중앙 정렬 */}
-          <div className="mt-[24px] max-h-[300px] overflow-y-auto hide-scrollbar">
+          <div className="mt-[24px] md:max-h-[300px] md:overflow-y-auto hide-scrollbar">
             <RankingList rankings={rankings} />
           </div>
           <RankingNotice />

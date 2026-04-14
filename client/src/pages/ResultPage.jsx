@@ -201,7 +201,8 @@ export default function ResultPage() {
           <button
             onClick={handleRetry}
             onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[100px] md:w-[180px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[12px] md:text-[18px]"
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors w-[100px] md:w-[180px] h-[36px] md:h-[48px] flex items-center justify-center gap-[4px] md:gap-[6px] text-[12px] md:text-[18px] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ ...NEODGM, fontWeight: 900, boxShadow: '0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3)' }}
           >
             <img src="/images/reroll.svg" alt="" className="w-[16px] md:w-[18px] h-[16px] md:h-[18px] shrink-0 object-contain" />
