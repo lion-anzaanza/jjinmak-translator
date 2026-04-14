@@ -27,12 +27,12 @@ const bannedIPsData = loadJSON(bannedIPsPath);
 const macroBanned = new Map(
   bannedIPsData.map(entry => typeof entry === 'string' ? [entry, '(알 수 없음)'] : [entry.ip, entry.name])
 );
-const SAMPLE_SIZE = 50;
-const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
+const SAMPLE_SIZE = 100;
+const CV_THRESHOLD = 5; // 변동계수 5% 미만이면 매크로
 const META_CV_THRESHOLD = 2; // CV값의 변동계수 2% 미만이면 패턴 반복 매크로
 const META_META_CV_THRESHOLD = 2; // 메타CV의 변동계수 2% 미만이면 패턴 변경 매크로
-const META_SAMPLE_SIZE = 50; // 메타CV 표본 수
-const META_META_SAMPLE_SIZE = 50; // 메타메타CV 표본 수
+const META_SAMPLE_SIZE = 30; // 메타CV 표본 수
+const META_META_SAMPLE_SIZE = 30; // 메타메타CV 표본 수
 const BLOCK_DURATION = 60 * 1000; // 1분 차단
 const VPN_SUBNET_THRESHOLD = 8; // 같은 이름에 고유 대역 8개 이상이면 VPN 매크로
 const nameSubnets = new Map(); // 이름 → Set(IP 대역)
