@@ -14,7 +14,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-white font-semibold mb-2">2. 광고 및 쿠키</h2>
-            <p>본 서비스는 Google AdSense를 통해 광고를 제공합니다. Google은 광고 제공을 위해 쿠키를 사용할 수 있으며, 이를 통해 사용자의 광고 관심사를 추론할 수 있습니다. Google의 광고 쿠키 사용 방식에 대한 자세한 내용은 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-[#9cb5ff] underline">Google 광고 정책</a>에서 확인할 수 있습니다.</p>
+            <p>본 서비스는 Google AdSense를 통해 광고를 제공합니다. Google을 포함한 제3자 광고 제공업체는 사용자의 이전 방문 기록을 바탕으로 맞춤형 광고를 제공하기 위해 쿠키를 사용할 수 있습니다. 맞춤형 광고 수신을 원하지 않는 경우 <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-[#9cb5ff] underline">Google 광고 설정</a>에서 거부할 수 있습니다. Google의 광고 쿠키 사용 방식에 대한 자세한 내용은 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-[#9cb5ff] underline">Google 광고 정책</a>에서 확인할 수 있습니다.</p>
           </section>
 
           <section>
