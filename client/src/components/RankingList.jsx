@@ -44,9 +44,12 @@ function getScaledSize(rankings, index) {
   const mobileBase = Math.floor(90 / firstName.length);
   const desktopBase = Math.floor(120 / firstName.length);
   const ratio = (top3[index]?.play_count || 0) / maxPlayCount;
+  const ownName = top3[index]?.name || 'x';
+  const mobileMax = Math.floor(90 / ownName.length);
+  const desktopMax = Math.floor(120 / ownName.length);
   return {
-    mobile: Math.max(14, Math.round(mobileBase * ratio)),
-    desktop: Math.max(18, Math.round(desktopBase * ratio)),
+    mobile: Math.max(14, Math.min(mobileMax, Math.round(mobileBase * ratio))),
+    desktop: Math.max(18, Math.min(desktopMax, Math.round(desktopBase * ratio))),
   };
 }
 
