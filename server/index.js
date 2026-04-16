@@ -29,8 +29,8 @@ const macroBanned = new Map(
 );
 const SAMPLE_SIZE = 50;
 const CV_THRESHOLD = 3; // 변동계수 3% 미만이면 매크로
-const META_CV_THRESHOLD = 5; // CV값의 변동계수 5% 미만이면 패턴 반복 매크로
-const META_META_CV_THRESHOLD = 5; // 메타CV의 변동계수 5% 미만이면 패턴 변경 매크로
+const META_CV_THRESHOLD = 2; // CV값의 변동계수 2% 미만이면 패턴 반복 매크로
+const META_META_CV_THRESHOLD = 2; // 메타CV의 변동계수 2% 미만이면 패턴 변경 매크로
 const META_SAMPLE_SIZE = 50; // 메타CV 표본 수
 const META_META_SAMPLE_SIZE = 50; // 메타메타CV 표본 수
 const BLOCK_DURATION = 60 * 1000; // 1분 차단
@@ -140,10 +140,13 @@ function detectMacro(ip, name) {
       macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
       console.log(`[경고] ${name} | ${reason} | ${strikes}회 적발 | IP: ${ip}`);
       return { blocked: true, message: '내는 경고했데이!! 웬수 되고 싶나!!!' };
-    } else {
+    } else if (strikes >= 2) {
       macroBlocked.set(ip, Date.now() + BLOCK_DURATION);
       console.log(`[차단] ${name} | ${reason} | ${strikes}회 적발 | 1분 차단 | IP: ${ip}`);
       return { blocked: true, message: '매크로가 감지됐데이! 어찌 이럴 수가 있노! 니는 1분 동안 내 웬수다! 반성하고 오그레이!' };
+    } else {
+      console.log(`[첫경고] ${name} | ${reason} | ${strikes}회 적발 | IP: ${ip}`);
+      return { blocked: true, message: '니 매크로 아니제...?' };
     }
   }
 
